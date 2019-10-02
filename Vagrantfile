@@ -28,7 +28,7 @@ Vagrant.configure("2") do |config|
   # Create a forwarded port mapping which allows access to a specific port
   # within the machine from a port on the host machine and only allow access
   # via 127.0.0.1 to disable public access
-  config.vm.network "forwarded_port", guest: 80, host: 8080, host_ip: "127.0.0.1"
+  config.vm.network "forwarded_port", guest: 5000, host: 5000, host_ip: "127.0.0.1"
 
   # Create a private network, which allows host-only access to the machine
   # using a specific IP.
@@ -77,14 +77,14 @@ Vagrant.configure("2") do |config|
   # Setup a Python development environment
   config.vm.provision "shell", inline: <<-SHELL
     apt-get update
-    apt-get install -y git python-pip python-dev build-essential
-    pip install --upgrade pip
+    apt-get install -y git python3 python3-pip python3-venv
+    pip3 install --upgrade pip
     apt-get -y autoremove
     # Make vi look nice ;-)
     sudo -H -u ubuntu echo "colorscheme desert" > ~/.vimrc
     # Install app dependencies
     cd /vagrant
-    sudo pip install -r requirements.txt
+    sudo pip3 install -r requirements.txt
   SHELL
 
   ######################################################################
