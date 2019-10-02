@@ -111,4 +111,5 @@ def initialize_logging(log_level=logging.INFO):
         # datefmt='%m/%d/%Y %I:%M:%S %p'
         fmt = '[%(asctime)s] %(levelname)s in %(module)s: %(message)s'
         logging.basicConfig(stream=sys.stdout, level=log_level, format=fmt)
-        logging.config.dictConfig(get_logger_settings("/data/log/",True))
+        dirname = os.path.join(os.getcwd(), "data/log/")
+        logging.config.dictConfig(get_logger_settings(dirname,True))
