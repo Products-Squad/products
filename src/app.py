@@ -4,7 +4,9 @@ from flask import Flask
 app = Flask(__name__)
 
 # Import the routes After the Flask app is created
-from service import service, logger
+
+from service import service
+from loggin import logger
 
 # Set up logging for production
 logger.initialize_logging()

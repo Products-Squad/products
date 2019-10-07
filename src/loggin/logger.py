@@ -56,7 +56,7 @@ def get_logger_settings(log_dir, console_output=True):
         'formatters': {
             # For Normal log, info, debug, error...
             'logstash_log': {
-                '()': "service.logger.RobustFormatter"
+                '()': "loggin.logger.RobustFormatter"
             },
             'debug': {
                 'format': ('[%(asctime) - 6s]: %(name)s - %(levelname)s - '
