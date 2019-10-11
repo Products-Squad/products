@@ -12,7 +12,8 @@ Vagrant.configure("2") do |config|
 
   # Every Vagrant development environment requires a box. You can search for
   # boxes at https://vagrantcloud.com/search.
-  config.vm.box = "ubuntu/xenial64"
+  config.vm.box = "ubuntu/bionic64"
+  config.vm.hostname = "flask"
 
   # Disable automatic box update checking. If you disable this, then
   # boxes will only be checked for updates when the user runs
@@ -66,9 +67,18 @@ Vagrant.configure("2") do |config|
     config.vm.provision "file", source: "~/.gitconfig", destination: "~/.gitconfig"
   end
 
-  # Copy your ssh keys file so that your git credentials are correct
+  # Copy the ssh keys into the vm for git access
   if File.exists?(File.expand_path("~/.ssh/id_rsa"))
     config.vm.provision "file", source: "~/.ssh/id_rsa", destination: "~/.ssh/id_rsa"
+  end
+
+  if File.exists?(File.expand_path("~/.ssh/id_rsa.pub"))
+    config.vm.provision "file", source: "~/.ssh/id_rsa.pub", destination: "~/.ssh/id_rsa.pub"
+  end
+
+  # Copy your .vimrc file so that your vi looks like you expect
+  if File.exists?(File.expand_path("~/.vimrc"))
+    config.vm.provision "file", source: "~/.vimrc", destination: "~/.vimrc"
   end
 
   ######################################################################
@@ -80,31 +90,10 @@ Vagrant.configure("2") do |config|
     apt-get install -y git python3 python3-pip python3-venv
     pip3 install --upgrade pip
     apt-get -y autoremove
-    # Make vi look nice ;-)
-    sudo -H -u ubuntu echo "colorscheme desert" > ~/.vimrc
     # Install app dependencies
     cd /vagrant
     sudo pip3 install -r requirements.txt
   SHELL
-
-  ######################################################################
-  # Add Redis docker container
-  ######################################################################
-  config.vm.provision "shell", inline: <<-SHELL
-    # Prepare Redis data share
-    sudo mkdir -p /var/lib/redis/data
-    sudo chown ubuntu:ubuntu /var/lib/redis/data
-  SHELL
-
-  # Add Redis docker container
-  config.vm.provision "docker" do |d|
-    d.pull_images "redis:alpine"
-    d.run "redis",
-      image: "redis:alpine",
-      args: "-h redis -p 6379:6379 -v /var/lib/redis/data:/data",
-      restart: "always",
-      daemonize: true
-  end
 
   ######################################################################
   # Add PostgreSQL RDBMS
@@ -114,11 +103,4 @@ Vagrant.configure("2") do |config|
     apt-get install -y postgresql postgresql-client postgresql-contrib libpq-dev
   SHELL
 
-  # Enable provisioning with a shell script. Additional provisioners such as
-  # Puppet, Chef, Ansible, Salt, and Docker are also available. Please see the
-  # documentation for more information about their specific syntax and use.
-  config.vm.provision "shell", inline: <<-SHELL
-    apt-get update
-    apt-get install -y apache2
-  SHELL
 end
