@@ -31,7 +31,7 @@ from flask_api import status
 # Import Flask application
 from app import app
 from werkzeug.exceptions import NotFound
-from service.models import Product, DataValidationError
+from service.model import Product, DataValidationError
 
 ######################################################################
 # RESTful Service
