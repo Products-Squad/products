@@ -97,11 +97,13 @@ Vagrant.configure("2") do |config|
   SHELL
 
   ######################################################################
-  # Add PostgreSQL RDBMS
+  # Add PostgreSQL docker container
   ######################################################################
-  config.vm.provision "shell", inline: <<-SHELL
-    apt-get update
-    apt-get install -y postgresql postgresql-client postgresql-contrib libpq-dev
-  SHELL
+  # docker run -d --name postgres -p 5432:5432 -v psql_data:/var/lib/postgresql/data postgres
+  config.vm.provision :docker do |d|
+    d.pull_images "postgres:alpine"
+    d.run "postgres:alpine",
+       args: "-d --name postgres -p 5432:5432 -v psql_data:/var/lib/postgresql/data"
+  end
 
 end
