@@ -1,49 +1,66 @@
-import os
+# Copyright 2019. All Rights Reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the 'License');
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an 'AS IS' BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+"""
+Models for Product Service
+All of the models are stored in this module
+Models
+------
+Product - A Product used in the Product Store
+Attributes:
+-----------
+name (string) - the name of the product
+stock (integer) - the amound of the product in stock
+price (numeric)) - the price of the product
+description (string) - the description of the product
+category (string) - the category the product belongs to (i.e. apparel, Electric appliance)
+"""
+
 import logging
 from flask_sqlalchemy import SQLAlchemy
 
+# Create the SQLAlchemy object to be initialized later in init_db()
 db = SQLAlchemy()
 
+
 class DataValidationError(Exception):
+    """ Used for an data validation errors when deserializing """
     pass
 
 
 class Product(db.Model):
-
+    """
+    Class that represents a Product
+    """
 
     logger = logging.getLogger('flask.app')
     app = None
-    
 
-    #Table Schema
+    # Table Schema
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String)
+    name = db.Column(db.String(50))
     stock = db.Column(db.Integer)
-    price = db.Column(db.Float)
-    description = db.Column(db.String)
-    category = db.Column(db.String)
+    price = db.Column(db.Numeric(18.2))
 
-
-
-    def __init__(self):
-        logger = logging.getLogger('flask.app')
-
-
-    def __init__(self, pid,pname, pstock, pprice,pdes, pcat):
-        self.id = pid
-        self.name = pname
-        self.stock = pstock
-        self.price = pprice
-        self.description = pdes
-        self.category = pcat
-
-
-    def __repr__(self):
-        return '<Product %r>' % (self.name)
-
+    description = db.Column(db.String(255))
+    category = db.Column(db.String(50))
 
     def save(self):
-        Product.logger.info("Saving %s", self.name)
+        """
+        Saves a Product to the data store
+        """
+        Product.logger.info('Saving %s', self.name)
         if not self.id:
             db.session.add(self)
         db.session.commit()
@@ -53,18 +70,24 @@ class Product(db.Model):
         Product.logger.info("Deleting %s", self.name)
         db.session.delete(self)
         db.session.commit()
-    
+
+
 
     def serialize(self):
+        """ Serializes a Product into a dictionary """
         return {"id": self.id,
                 "name": self.name,
                 "stock": self.stock,
-                "price": self.price,
+                "price": float(self.price),
                 "description": self.description,
                 "category": self.category}
 
-
-    def deserialize(self,data):
+    def deserialize(self, data):
+        """
+        Deserializes a Product from a dictionary
+        Args:
+            data (dict): A dictionary containing the Product data
+        """
         try:
             self.id = data['id']
             self.name = data['name']
@@ -73,41 +96,32 @@ class Product(db.Model):
             self.description = data['description']
             self.category = data['category']
         except KeyError as error:
-            raise DataValidationError('Invalid product: missing ' + error.args[0])
+            raise DataValidationError(
+                'Invalid product: missing ' + error.args[0])
         except TypeError as error:
-            raise DataValidationError('Invalid product: body of request contained' \
+            raise DataValidationError('Invalid pet: body of request contained'
                                       'bad or no data')
         return self
 
-
     @classmethod
-    def init_db(cls,app):
+    def init_db(cls, app):
+        """ Initializes the database session """
         cls.logger.info('Initializing database')
         cls.app = app
-        # init sqlalchemy from flask
+        # This is where we initialize SQLAlchemy from the Flask app
         db.init_app(app)
         app.app_context().push()
-        db.create_all()
-
-
-    @classmethod
-    def all(cls):
-        cls.logger.info('Processing all products')
-        return cls.query.all()
+        db.create_all()  # make our sqlalchemy tables
 
     @classmethod
-    def find_by_id(cls, product_id):
-        cls.logger.info('Processing lookup for id %s.', product_id)
+    def find(cls, product_id):
+        """ Finds a Product by it's ID """
+        cls.logger.info('Processing lookup for id %s ...', product_id)
         return cls.query.get(product_id)
 
-    @classmethod
-    def find_or_404(cls, product_id):
-        cls.logger.info('Processing lookup for id %s.', product_id)
-        return cls.query.get_or_404(product_id)
-   
+
     @classmethod
     def find_by_category(cls,category):
         cls.logger.info('Processing category query for %s', category)
         return cls.query.filter(cls.category == category)
         
-    
