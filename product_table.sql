@@ -1,5 +1,5 @@
 CREATE TABLE product (
-    id             integer,
+    id             integer NOT NULL PRIMARY KEY,
     name           varchar(50),
     stock          integer,
     price          decimal(18,2),
