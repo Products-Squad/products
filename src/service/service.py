@@ -25,26 +25,22 @@ DELETE /products/{id} - deletes a Product record in the database
 GET /products?category={category} - query a list of the Products match the specific category
 PUT /products/{id}/buy - updates the purchase amoubt of a Product record
 """
-
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, url_for, make_response
 from flask_api import status
 # Import Flask application
 from app import app
 from werkzeug.exceptions import NotFound
-from service.models import Product, DataValidationError
+from service.model import Product, DataValidationError
 
 ######################################################################
 # RESTful Service
 ######################################################################
 
-
 # TODO: Implement new product API, followed by story #2
 @app.route('/')
-def index():
+def hello_world():
     app.logger.info("Request Success!")
     return 'Hello, World!!!'
-
-# TODO: Implement read product API, followed by story #3
 
 # TODO: Implement update product API, followed by story #4
 
@@ -53,6 +49,16 @@ def index():
 # TODO: Implement list product API, followed by story #6
 
 # TODO: Implement query product API, followed by story #7
+
+######################################################################
+#  U T I L I T Y   F U N C T I O N S
+######################################################################
+
+
+def init_db():
+    """ Initialies the SQLAlchemy app """
+    global app
+    Product.init_db(app)
 
 
 ######################################################################

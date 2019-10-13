@@ -39,11 +39,74 @@ class DataValidationError(Exception):
     pass
 
 
-class Product():
+class Product(db.Model):
     """
     Class that represents a Product
     """
 
-    def __init__(self):
-        logger = logging.getLogger('flask.app')
-        app = None
+    logger = logging.getLogger('flask.app')
+    app = None
+
+    # Table Schema
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(50))
+    stock = db.Column(db.Integer)
+    price = db.Column(db.Numeric(18.2))
+
+    description = db.Column(db.String(255))
+    category = db.Column(db.String(50))
+
+    def save(self):
+        """
+        Saves a Product to the data store
+        """
+        Product.logger.info('Saving %s', self.name)
+        if not self.id:
+            db.session.add(self)
+        db.session.commit()
+
+    def serialize(self):
+        """ Serializes a Product into a dictionary """
+        return {"id": self.id,
+                "name": self.name,
+                "stock": self.stock,
+                "price": float(self.price),
+                "description": self.description,
+                "category": self.category}
+
+    def deserialize(self, data):
+        """
+        Deserializes a Product from a dictionary
+        Args:
+            data (dict): A dictionary containing the Product data
+        """
+        try:
+            self.id = data['id']
+            self.name = data['name']
+            self.stock = data['stock']
+            self.price = data['price']
+            self.description = data['description']
+            self.category = data['category']
+        except KeyError as error:
+            raise DataValidationError(
+                'Invalid product: missing ' + error.args[0])
+        except TypeError as error:
+            raise DataValidationError('Invalid pet: body of request contained'
+                                      'bad or no data')
+        return self
+
+    @classmethod
+    def init_db(cls, app):
+        """ Initializes the database session """
+        cls.logger.info('Initializing database')
+        cls.app = app
+        # This is where we initialize SQLAlchemy from the Flask app
+        db.init_app(app)
+        app.app_context().push()
+        db.create_all()  # make our sqlalchemy tables
+
+    @classmethod
+    def find(cls, product_id):
+        """ Finds a Product by it's ID """
+        cls.logger.info('Processing lookup for id %s ...', product_id)
+        return cls.query.get(product_id)
