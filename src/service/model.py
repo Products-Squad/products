@@ -64,6 +64,11 @@ class Product(db.Model):
         if not self.id:
             db.session.add(self)
         db.session.commit()
+    
+    def delete(self):
+        Product.logger.info("Deleting %s", self.name)
+        db.session.delete(self)
+        db.session.commit()
 
     def serialize(self):
         """ Serializes a Product into a dictionary """
@@ -110,3 +115,8 @@ class Product(db.Model):
         """ Finds a Product by it's ID """
         cls.logger.info('Processing lookup for id %s ...', product_id)
         return cls.query.get(product_id)
+
+    @classmethod
+    def find_by_category(cls,category):
+        cls.logger.info('Processing category query for %s...', category)
+        return cls.query.filter(cls.category == category)
