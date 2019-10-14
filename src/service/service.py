@@ -82,7 +82,7 @@ def list_products():
     else:
         products = Product.all()
 
-    results = [product.serialize for product in products]
+    results = [product.serialize() for product in products]
     return make_response(jsonify(results), status.HTTP_200_OK)
 
 
