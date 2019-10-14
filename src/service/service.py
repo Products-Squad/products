@@ -67,6 +67,7 @@ def get_products(product_id):
 
 ######################################################################
 # LIST ALL PRODUCTS
+# QUERY PRODUCTS LISTS BY ATTRIBUTE
 ######################################################################
 @app.route('/products', methods=['GET'])
 def list_products():
@@ -75,14 +76,22 @@ def list_products():
     products = []
     category = request.args.get('category')
     name = request.args.get('name')
+    price = request.args.get('price')
     if category:
         products = Product.find_by_category(category)
     elif name:
         products = Product.find_by_name(name)
+    elif int(price) < 4: # query price by range
+        if int(price) == 1:
+            products = Product.find_by_price(0, 25)
+        elif int(price) == 2:
+            products = Product.find_by_price(25, 50)
+        else:
+            products = Product.find_by_price(50, 75)
     else:
         products = Product.all()
 
-    results = [product.serialize for product in products]
+    results = [product.serialize() for product in products]
     return make_response(jsonify(results), status.HTTP_200_OK)
 
 
@@ -120,17 +129,6 @@ def delete_products(id):
     if product:
         product.delete()
     return make_response('',status.HTTP_204_NO_CONTENT)
-
-######################################################################
-# QUERY PRODUCTS LISTS BY CATEGORY
-######################################################################
-@app.route('/products?category=<category>', methods=['GET'])
-def query_products_list_by_category(category):
-    """Query Products by category the Product"""
-    app.logger.info('Request for query product')
-    products = Product.find_by_category(category)
-    results = [product.serialize for product in products]
-    return make_response(jsonify(results), status.HTTP_200_OK)
 
 ######################################################################
 #  U T I L I T Y   F U N C T I O N S
