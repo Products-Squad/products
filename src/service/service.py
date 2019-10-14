@@ -110,14 +110,14 @@ def create_products():
 
 
 # TODO: Implement delete product API, followed by story #5
-# @app.route('/products/<id>', method = ['DELETE'])
-# def delete_products(id):
-#     """delete a product by id"""
-#     app.logger.info('Request to delete product with the id provided')
-#     product = Product.find_by_id(id)
-#     if product:
-#         product.delete()
-#     return make_response('',status.HTTP_204_NO_CONTENT)
+@app.route('/products/<id>', method = ['DELETE'])
+def delete_products(id):
+    """delete a product by id"""
+    app.logger.info('Request to delete product with the id provided')
+    product = Product.find_by_id(id)
+    if product:
+        product.delete()
+    return make_response('',status.HTTP_204_NO_CONTENT)
 
 # TODO: Implement list product API, followed by story #6
 
