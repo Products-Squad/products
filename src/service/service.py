@@ -78,7 +78,7 @@ def list_products():
     if category:
         products = Product.find_by_category(category)
     elif name:
-        products = Product.find_by_category('name')
+        products = Product.find_by_name(name)
     else:
         products = Product.all()
 
@@ -109,20 +109,28 @@ def create_products():
     })
 
 
-# TODO: Implement delete product API, followed by story #5
-@app.route('/products/<id>', method = ['DELETE'])
+######################################################################
+# DELETE ADD A PRODUCT
+######################################################################
+@app.route('/products/<int:id>', methods=['DELETE'])
 def delete_products(id):
     """delete a product by id"""
     app.logger.info('Request to delete product with the id provided')
-    product = Product.find_by_id(id)
+    product = Product.find(id)
     if product:
         product.delete()
     return make_response('',status.HTTP_204_NO_CONTENT)
 
-# TODO: Implement list product API, followed by story #6
-
-# TODO: Implement query product API, followed by story #7
-
+######################################################################
+# QUERY PRODUCTS LISTS BY CATEGORY
+######################################################################
+@app.route('/products?category=<category>', methods=['GET'])
+def query_products_list_by_category(category):
+    """Query Products by category the Product"""
+    app.logger.info('Request for query product')
+    products = Product.find_by_category(category)
+    results = [product.serialize for product in products]
+    return make_response(jsonify(results), status.HTTP_200_OK)
 
 ######################################################################
 #  U T I L I T Y   F U N C T I O N S
