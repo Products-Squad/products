@@ -1,9 +1,24 @@
+# Copyright 2019. All Rights Reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 """
 Test Factory to make fake objects for testing
 """
 import factory
+import random
 from factory.fuzzy import FuzzyChoice
-from src.service.models import Product
+from service.model import Product
 
 MIN_PRICE = 10
 MAX_PRICE = 100
@@ -16,10 +31,11 @@ class ProductFactory(factory.Factory):
         model = Product
     id = factory.Sequence(lambda n: n)
     name = factory.Faker('first_name')
-    stock = factory.LazyAttribute(random.randrange(MIN_STOCK, MAX_STOCK + 1))
-    price = factory.LazyAttribute(random.randrange(MIN_PRICE, MAX_PRICE + 1))
-    description = factory.Faker('description_is_...')
+    stock = factory.LazyAttribute(lambda x: random.randrange(MIN_STOCK, MAX_STOCK + 1))
+    price = factory.LazyAttribute(lambda x: random.randrange(MIN_PRICE, MAX_PRICE + 1))
+    description = factory.Faker('sentence')
     category = FuzzyChoice(choices=['food', 'cloth', 'electronic', 'pet'])
+
 
 if __name__ == '__main__':
     for _ in range(10):

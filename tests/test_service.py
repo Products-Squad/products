@@ -1,15 +1,38 @@
+# Copyright 2019. All Rights Reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+"""
+Product API Service Test Suite
+Test cases can be run with the following:
+  nosetests -v --with-spec --spec-color
+  coverage report -m
+  codecov --token=$CODECOV_TOKEN
+"""
+
 import unittest
 import os
 import logging
 from flask_api import status    # HTTP Status Codes
 from unittest.mock import MagicMock, patch
 
-from src.service.models import Product, DataValidationError, db
+from service.model import Product, DataValidationError, db
 from .product_factory import ProductFactory
-from src.service.service import app, init_db
-from src.loggin.logger import initialize_logging
+from app import app
+from service.service import init_db
+from loggin.logger import initialize_logging
 
-DATABASE_URI = os.getenv('DATABASE_URI', 'postgres://postgres:passw0rd@localhost:5432/postgres')
+DATABASE_URI = os.getenv('DATABASE_URI', 'postgres://postgres:postgres@localhost:5432/postgres')
 
 ######################################################################
 #  T E S T   C A S E S
@@ -21,7 +44,7 @@ class TestProductServer(unittest.TestCase):
     def setUpClass(cls):
         """ Run once before all tests """
         app.debug = False
-        initialize_logging(logging.INFO)
+        initialize_logging()
         # Set up the test database
         app.config['SQLALCHEMY_DATABASE_URI'] = DATABASE_URI
 
@@ -84,7 +107,6 @@ class TestProductServer(unittest.TestCase):
         self.assertTrue(location != None)
         # Check the data is correct
         new_product = resp.get_json()
-        self.assertEqual(new_product['id'], test_product.id, "IDs do not match")
         self.assertEqual(new_product['name'], test_product.name, "Names do not match")
         self.assertEqual(new_product['category'], test_product.category, "Categories do not match")
         self.assertEqual(new_product['stock'], test_product.stock, "Stock does not match")
@@ -95,7 +117,6 @@ class TestProductServer(unittest.TestCase):
                             content_type='application/json')
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
         new_product = resp.get_json()
-        self.assertEqual(new_product['id'], test_product.id, "IDs do not match")
         self.assertEqual(new_product['name'], test_product.name, "Names do not match")
         self.assertEqual(new_product['category'], test_product.category, "Categories do not match")
         self.assertEqual(new_product['stock'], test_product.stock, "Stock does not match")
@@ -166,14 +187,14 @@ class TestProductServer(unittest.TestCase):
             self.assertEqual(product['category'], test_category)
 
     #####  Mock data #####
-    @patch('service.models.Product.find_by_name')
+    @patch('service.model.Product.find_by_name')
     def test_bad_request(self, bad_request_mock):
         """ Test a Bad Request error from Find By Name """
         bad_request_mock.side_effect = DataValidationError()
         resp = self.app.get('/products', query_string='name=steak')
         self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
 
-    @patch('service.models.Product.find_by_name')
+    @patch('service.model.Product.find_by_name')
     def test_mock_search_data(self, product_find_mock):
         """ Test showing how to mock data """
         product_find_mock.return_value = [MagicMock(serialize=lambda: {'name': 'steak'})]
