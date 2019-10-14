@@ -81,7 +81,6 @@ def list_products():
         products = Product.find_by_name(name)
     else:
         products = Product.all()
-
     results = [product.serialize() for product in products]
     return make_response(jsonify(results), status.HTTP_200_OK)
 
@@ -122,15 +121,22 @@ def delete_products(id):
     return make_response('',status.HTTP_204_NO_CONTENT)
 
 ######################################################################
-# QUERY PRODUCTS LISTS BY CATEGORY
+# BUY A PRODUCT
 ######################################################################
-@app.route('/products?category=<category>', methods=['GET'])
-def query_products_list_by_category(category):
-    """Query Products by category the Product"""
-    app.logger.info('Request for query product')
-    products = Product.find_by_category(category)
-    results = [product.serialize for product in products]
-    return make_response(jsonify(results), status.HTTP_200_OK)
+@app.route('/products/<int:p_id>/buy', methods=['PUT'])
+def buy_products(p_id):
+    """buy a product by id"""
+    app.logger.info('Request for buy a product')
+    product = Product.find(p_id)
+    if not product:
+        raise NotFound("Product with id '{}' was not found.".format(p_id))
+    elif product.stock == 0:
+        message = "Product with id "+str(p_id)+" has been sold out!"
+        return make_response(no_content_request(message))
+    else:
+        product.stock = product.stock - 1
+    product.save()
+    return make_response(product.serialize(), status.HTTP_200_OK)
 
 ######################################################################
 #  U T I L I T Y   F U N C T I O N S
@@ -149,11 +155,18 @@ def check_content_type(content_type):
                      request.headers['Content-Type'])
     abort(415, 'Content-Type must be {}'.format(content_type))
 
+def no_content_request(error):
+    """ Handles bad reuests with 204_NO_CONTENT """
+    message = str(error)
+    app.logger.warning(message)
+    return jsonify(status=status.HTTP_204_NO_CONTENT,
+                   error='No content',
+                   message=message), status.HTTP_204_NO_CONTENT
+
 
 ######################################################################
 # Error Handlers
 ######################################################################
-# TODO: Implement Error Hanlders, followed by story #12
 @app.errorhandler(DataValidationError)
 def request_validation_error(error):
     """ Handles Value Errors from bad data """
