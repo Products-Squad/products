@@ -44,8 +44,8 @@ def hello_world():
 
 # TODO: Implement update product API, followed by story #4
 @app.route('/products', methods = ['GET'])
-def list_pets():
-    """Returns all of the Pets"""
+def list_products():
+    """Returns all of the Products"""
     app.logger.info('Request for product list')
     products = []
     category = request.args.get('category')
