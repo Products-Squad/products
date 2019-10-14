@@ -1,8 +1,8 @@
 CREATE TABLE product (
-    id             integer NOT NULL PRIMARY KEY,
-    name           varchar(50),
-    stock          integer,
-    price          decimal(18,2),
-    description    varchar(255),
-    category       varchar(50)
+    id             SERIAL PRIMARY KEY,
+    name           VARCHAR(50),
+    stock          INTEGER,
+    price          DECIMAL(18,2),
+    description    VARCHAR(255),
+    category       VARCHAR(50)
 );

@@ -60,8 +60,10 @@ def get_products(product_id):
     return make_response(jsonify(product.serialize()), status.HTTP_200_OK)
 
 
-# TODO: Implement update product API, followed by story #4
-@app.route('/products', methods = ['GET'])
+######################################################################
+# LIST ALL PRODUCTS
+######################################################################
+@app.route('/products', methods=['GET'])
 def list_products():
     """Returns all of the Products"""
     app.logger.info('Request for product list')
@@ -77,6 +79,29 @@ def list_products():
 
     results = [product.serialize for product in products]
     return make_response(jsonify(results), status.HTTP_200_OK)
+
+
+######################################################################
+# ADD A NEW PRODUCT
+######################################################################
+@app.route('/products', methods=['POST'])
+def create_products():
+    """
+    Creates a Product
+    This endpoint will create a Product based the data in the body that is posted
+    """
+    app.logger.info('Request to create a product')
+    # check_content_type('application/json')
+    product = Product()
+    product.deserialize(request.get_json())
+    product.save()
+    message = product.serialize()
+    location_url = url_for(
+        'get_products', product_id=product.id, _external=True)
+    return make_response(jsonify(message), status.HTTP_201_CREATED,
+                         {
+                             'Location': location_url
+    })
 
 
 # TODO: Implement delete product API, followed by story #5
