@@ -64,7 +64,7 @@ class Product(db.Model):
         if not self.id:
             db.session.add(self)
         db.session.commit()
-    
+
     def delete(self):
         Product.logger.info("Deleting %s", self.name)
         db.session.delete(self)
@@ -86,7 +86,6 @@ class Product(db.Model):
             data (dict): A dictionary containing the Product data
         """
         try:
-            self.id = data['id']
             self.name = data['name']
             self.stock = data['stock']
             self.price = data['price']
@@ -117,7 +116,7 @@ class Product(db.Model):
         return cls.query.get(product_id)
 
     @classmethod
-    def find_by_category(cls,category):
+    def find_by_category(cls, category):
         cls.logger.info('Processing category query for %s...', category)
         return cls.query.filter(cls.category == category)
 
@@ -125,7 +124,7 @@ class Product(db.Model):
     def find_by_name(cls, name):
         cls.logger.info('Processing name query for %s ...', name)
         return cls.query.filter(cls.name == name)
-    
+
     @classmethod
     def all(cls):
         cls.logger.info('Processing all Products')
