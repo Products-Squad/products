@@ -25,22 +25,27 @@ DELETE /products/{id} - deletes a Product record in the database
 GET /products?category={category} - query a list of the Products match the specific category
 PUT /products/{id}/buy - updates the purchase amoubt of a Product record
 """
-from flask import Flask, jsonify, request, url_for, make_response
+from flask import Flask, jsonify, request, url_for, make_response, abort
 from flask_api import status
 # Import Flask application
 from app import app
 from werkzeug.exceptions import NotFound
 from service.model import Product, DataValidationError
 
+
 ######################################################################
 # RESTful Service
 ######################################################################
-
-# TODO: Implement new product API, followed by story #2
+######################################################################
+# GET INDEX
+######################################################################
 @app.route('/')
-def hello_world():
-    app.logger.info("Request Success!")
-    return 'Hello, World!!!'
+def index():
+    """ Root URL response """
+    return jsonify(name='Product Demo REST API Service',
+                   version='1.0',
+                   paths=url_for('list_products', _external=True)
+                   ), status.HTTP_200_OK
 
 
 ######################################################################
@@ -109,24 +114,32 @@ def create_products():
 def delete_products(id):
     """delete a product by id"""
     app.logger.info('Request to delete product with the id provided')
-    product = Product.find(id)
+    product = Product.find_by_id(id)
     if product:
         product.delete()
     return make_response('',status.HTTP_204_NO_CONTENT)
-    
+
 # TODO: Implement list product API, followed by story #6
 
 # TODO: Implement query product API, followed by story #7
 
+
 ######################################################################
 #  U T I L I T Y   F U N C T I O N S
 ######################################################################
-
-
 def init_db():
     """ Initialies the SQLAlchemy app """
     global app
     Product.init_db(app)
+
+
+def check_content_type(content_type):
+    """ Checks that the media type is correct """
+    if request.headers['Content-Type'] == content_type:
+        return
+    app.logger.error('Invalid Content-Type: %s',
+                     request.headers['Content-Type'])
+    abort(415, 'Content-Type must be {}'.format(content_type))
 
 
 ######################################################################
