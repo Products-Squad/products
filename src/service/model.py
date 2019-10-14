@@ -120,3 +120,13 @@ class Product(db.Model):
     def find_by_category(cls,category):
         cls.logger.info('Processing category query for %s...', category)
         return cls.query.filter(cls.category == category)
+
+    @classmethod
+    def find_by_name(cls, name):
+        cls.logger.info('Processing name query for %s ...', name)
+        return cls.query.filter(cls.name == name)
+    
+    @classmethod
+    def all(cls):
+        cls.logger.info('Processing all Products')
+        return cls.query.all()
