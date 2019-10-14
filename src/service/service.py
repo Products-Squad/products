@@ -42,6 +42,24 @@ def hello_world():
     app.logger.info("Request Success!")
     return 'Hello, World!!!'
 
+
+######################################################################
+# RETRIEVE A PRODUCT
+######################################################################
+@app.route('/products/<int:product_id>', methods=['GET'])
+def get_products(product_id):
+    """
+    Retrieve a single PRODUCT
+    This endpoint will return a Product based on it's id
+    """
+    app.logger.info('Request for product with id: %s', product_id)
+    product = Product.find(product_id)
+    if not product:
+        raise NotFound(
+            "Product with id '{}' was not found.".format(product_id))
+    return make_response(jsonify(product.serialize()), status.HTTP_200_OK)
+
+
 # TODO: Implement update product API, followed by story #4
 
 # TODO: Implement delete product API, followed by story #5
