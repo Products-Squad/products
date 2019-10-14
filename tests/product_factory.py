@@ -16,18 +16,25 @@
 Test Factory to make fake objects for testing
 """
 import factory
+import random
 from factory.fuzzy import FuzzyChoice
-from service.models import Product
+from service.model import Product
 
+MIN_PRICE = 10
+MAX_PRICE = 100
+MIN_STOCK = 0
+MAX_STOCK = 50
 
 class ProductFactory(factory.Factory):
-    """ Creates fake products that you don't have to feed """
+    """ Creates fake product that you don't have to feed """
     class Meta:
         model = Product
     id = factory.Sequence(lambda n: n)
     name = factory.Faker('first_name')
-    # category = FuzzyChoice(choices=['dog', 'cat', 'bird', 'fish'])
-    # available = FuzzyChoice(choices=[True, False])
+    stock = factory.LazyAttribute(lambda x: random.randrange(MIN_STOCK, MAX_STOCK + 1))
+    price = factory.LazyAttribute(lambda x: random.randrange(MIN_PRICE, MAX_PRICE + 1))
+    description = factory.Faker('sentence')
+    category = FuzzyChoice(choices=['food', 'cloth', 'electronic', 'pet'])
 
 
 if __name__ == '__main__':
