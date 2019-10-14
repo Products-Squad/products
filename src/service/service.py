@@ -109,7 +109,7 @@ def create_products():
 def delete_products(id):
     """delete a product by id"""
     app.logger.info('Request to delete product with the id provided')
-    product = Product.find_by_id(id)
+    product = Product.find(id)
     if product:
         product.delete()
     return make_response('',status.HTTP_204_NO_CONTENT)
