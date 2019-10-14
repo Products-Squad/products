@@ -43,6 +43,23 @@ def hello_world():
     return 'Hello, World!!!'
 
 # TODO: Implement update product API, followed by story #4
+@app.route('/products', methods = ['GET'])
+def list_products():
+    """Returns all of the Products"""
+    app.logger.info('Request for product list')
+    products = []
+    category = request.args.get('category')
+    name = request.args.get('name')
+    if category:
+        products = Product.find_by_category(category)
+    elif name:
+        products = Product.find_by_category('name')
+    else:
+        products = Product.all()
+
+    results = [product.serialize for product in products]
+    return make_response(jsonify(results), status.HTTP_200_OK)
+
 
 # TODO: Implement delete product API, followed by story #5
 
