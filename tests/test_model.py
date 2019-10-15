@@ -88,6 +88,7 @@ class TestProducts(unittest.TestCase):
         products = Product.all()
         self.assertEqual(len(products), 1)
 
+    ##### Update a product #####
     def test_update_a_product(self):
         """ Update a Product """
         product = Product(name="Wagyu Tenderloin Steak", 
@@ -105,6 +106,7 @@ class TestProducts(unittest.TestCase):
         self.assertEqual(len(products), 1)
         self.assertEqual(products[0].category, "beverage")
 
+    ##### Delete a product #####
     def test_delete_a_product(self):
         """ Delete a Product """
         product = Product(name="Wagyu Tenderloin Steak", 
@@ -155,6 +157,13 @@ class TestProducts(unittest.TestCase):
         product = Product()
         self.assertRaises(DataValidationError, product.deserialize, data)
 
+    def test_deserialize_a_miss_product(self):
+        """ Test deserialization of product missing agrs """
+        data = {"id": 1, "name": "shampos", "category": "Health Care"}
+        product = Product()
+        self.assertRaises(DataValidationError, product.deserialize, data)
+
+    ##### Find a product #####
     def test_find_product(self):
         """ Find a Product by ID """
         Product(name="Wagyu Tenderloin Steak", 
@@ -179,6 +188,17 @@ class TestProducts(unittest.TestCase):
         self.assertEqual(products[0].name, "Wagyu Tenderloin Steak")
         self.assertEqual(products[0].stock, 11)
 
+    def test_find_by_price(self):
+        """ Find Products by Price """
+        Product(name="Wagyu Tenderloin Steak", 
+            category="food", stock=11, price=26.8,
+            description="The most decadent, succulent cut of beef, ever.").save()
+        Product(name="shampos", category="Health Care", stock=48, price=12.34).save()
+        products = Product.find_by_price(25, 50)
+        self.assertEqual(products[0].category, "food")
+        self.assertEqual(products[0].name, "Wagyu Tenderloin Steak")
+        self.assertEqual(products[0].stock, 11)
+
     def test_find_by_name(self):
         """ Find a Product by Name """
         Product(name="Wagyu Tenderloin Steak", 
@@ -192,19 +212,4 @@ class TestProducts(unittest.TestCase):
         print(getcontext())
         self.assertAlmostEqual(products[0].price, Decimal(12.34))
 
-    # def test_find_or_404_found(self):
-    #     """ Find or return 404 found """
-    #     Product(name="Wagyu Tenderloin Steak", 
-    #         category="food", stock=11, price=20.56,
-    #         description="The most decadent, succulent cut of beef, ever.").save()
-    #     shampo = Product(name="shampos", category="Health Care", stock=48, price=12.34)
-    #     shampo.save()
-    #     product = Product.find_or_404(shampo.id)
-    #     self.assertIsNot(product, None)
-    #     self.assertEqual(product.id, shampo.id)
-    #     self.assertEqual(product.name, "shampos")
-    #     self.assertEqual(product.category, "Health Care")
-
-    # def test_find_or_404_not_found(self):
-    #     """ Find or return 404 NOT found """
-    #     self.assertRaises(NotFound, Product.find_or_404, 0)
+    
