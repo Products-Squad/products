@@ -252,6 +252,19 @@ class TestProductServer(unittest.TestCase):
         bought_product = resp.get_json()
         self.assertEqual(bought_product['stock'], updated_product['stock'] - 1)
 
+    def test_buy_product_with_wrong_id(self):
+        """ Try to buy a product with wrong product id """
+        # create a test product
+        product = ProductFactory()
+        resp = self.app.post('/products',
+                             json=product.serialize(),
+                             content_type='application/json')
+        test_product = resp.get_json()
+        # buy this product with wrong id 
+        resp = self.app.put('/products/{}/buy'.format(2),
+                        json=test_product,
+                        content_type='application/json')
+        self.assertEqual(resp.status_code, status.HTTP_404_NOT_FOUND)      
 
     def test_buy_product_out_of_stock(self):
         """ Buy a Product out of stock """
