@@ -10,11 +10,13 @@ import sys
 from flask.logging import default_handler
 from app import app
 
+
 class RobustFormatter(logging.Formatter):
     """
     Display Json format. The Json includes: { message, extra args }
     Regarding to exception, it will display few info (exception name, location, etc.)
     """
+
     def format(self, record):
         extra = record.__dict__
         record.message = record.getMessage()
@@ -103,6 +105,8 @@ def get_logger_settings(log_dir, console_output=True):
     return logger_settings
 
 # Setting up Logger
+
+
 def initialize_logging(log_level=logging.INFO):
     """ Initialized the default logging to STDOUT """
     if not app.debug:
@@ -112,4 +116,4 @@ def initialize_logging(log_level=logging.INFO):
         fmt = '[%(asctime)s] %(levelname)s in %(module)s: %(message)s'
         logging.basicConfig(stream=sys.stdout, level=log_level, format=fmt)
         dirname = os.path.join(os.getcwd(), "data/log/")
-        logging.config.dictConfig(get_logger_settings(dirname,True))
+        #logging.config.dictConfig(get_logger_settings(dirname, True))
