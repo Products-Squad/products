@@ -10,7 +10,7 @@ The following APIs are provided in the service.
 * Delete a product by id: [DELETE] `/products/<id>`;
 * List products: [GET] `/products`;
 * Query a product by an attribute:
-  - cstegory: [GET] `/products?category=<category>`;
+  - category: [GET] `/products?category=<category>`;
   - name: [GET] `/products?name=<name>`;
   - price range with 1, 2, or 3: [GET] `/products?price=<price>`;
 * Buy a product: [PUT] `/products/<id>/buy`;
