@@ -1,21 +1,18 @@
 # Products
-
 This is the remote master branch for the Products team.
 
 ### Products Service Description:
-
 The following APIs are provided in the service.
 
 * Create a new product: [POST] /products
-* Read the info about a product: [GET] /products/<id>
-* Update a product: [PUT] /products/<id>
-* Delete a product by id: [DELETE] /products/<id>
+* Read the info about a product: [GET] /products/&lt;id&gt;
+* Update a product: [PUT] /products/&lt;id&gt;
+* Delete a product by id: [DELETE] /products/&lt;id&gt;
 * List products: [GET] /products
-* Query a product by category: [GET] /products?category=<category>
-* Buy a product: [PUT] /products/<id>/buy
+* Query a product by category: [GET] /products?category=&lt;category&gt;
+* Buy a product: [PUT] /products/&lt;id&gt;/buy
 
 ### Prerequisite Installation
-
 To run this service, Vagrant and VirtualBox are required to be installed. After installation of Vagrant and VirtualBox, clone the project from github to your local folder.
 ```
 git clone https://github.com/Products-Squad/products.git
