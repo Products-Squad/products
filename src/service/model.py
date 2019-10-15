@@ -126,6 +126,11 @@ class Product(db.Model):
         return cls.query.filter(cls.name == name)
 
     @classmethod
+    def find_by_price(cls, low, high):
+        cls.logger.info('Processing price query as range (%d %d] ...', low, high)
+        return cls.query.filter(db.and_(cls.price > low, cls.price <= high))
+
+    @classmethod
     def all(cls):
         cls.logger.info('Processing all Products')
         return cls.query.all()
