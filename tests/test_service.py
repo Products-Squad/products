@@ -29,7 +29,7 @@ from unittest.mock import MagicMock, patch
 from service.model import Product, DataValidationError, db
 from .product_factory import ProductFactory
 from app import app
-from service.service import init_db
+from service.service import init_db, internal_server_error
 from loggin.logger import initialize_logging
 
 DATABASE_URI = os.getenv('DATABASE_URI', 'postgres://postgres:postgres@localhost:5432/postgres')
@@ -157,6 +157,17 @@ class TestProductServer(unittest.TestCase):
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
         updated_product = resp.get_json()
         self.assertEqual(updated_product['category'], 'unknown')
+    
+    def test_update_product_not_found(self):
+        """ Update a non-existing Product """
+        # new a product without posting
+        test_product = ProductFactory().serialize()
+        # update the product
+        test_product['category'] = 'unknown'
+        resp = self.app.put('/products/{}'.format(test_product['id']),
+                            json=test_product,
+                            content_type='application/json')
+        self.assertEqual(resp.status_code, status.HTTP_404_NOT_FOUND)
 
     ##### Delete a product #####
     def test_delete_product(self):
@@ -178,13 +189,105 @@ class TestProductServer(unittest.TestCase):
         test_category = products[0].category
         category_products = [product for product in products if product.category == test_category]
         resp = self.app.get('/products',
-                            query_string='?category={}'.format(test_category))
+                            query_string='category={}'.format(test_category))
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
         data = resp.get_json()
         self.assertEqual(len(data), len(category_products))
         # check the data just to be sure
         for product in data:
             self.assertEqual(product['category'], test_category)
+    
+    def _get_priceid_by_price(self, test_price):
+        if test_price > 0 and test_price <= 25:
+            return 1
+        elif test_price <= 50:
+            return 2
+        elif test_price <= 75:
+            return 3
+        else:
+            return 0
+    
+    def _test_price(self, price, products):
+        price_products = [product for product in products 
+            if self._get_priceid_by_price(product.price) == price]
+        resp = self.app.get('/products',
+                            query_string='price={}'.format(price))
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        data = resp.get_json()
+        self.assertEqual(len(data), len(price_products))
+        # check the data just to be sure
+        for product in data:
+            self.assertEqual(self._get_priceid_by_price(product['price']), price)
+
+    def test_query_product_list_by_price(self):
+        """ Query Products by Price """
+        products = self._create_products(10)
+        test_prices = [1,2,3]
+        for price in test_prices:
+            self._test_price(price, products)
+
+    ##### Buy a product #####
+    def test_buy_product_with_stock(self):
+        """ Buy a Product in stock """
+        # create a test product
+        product = ProductFactory()
+        resp = self.app.post('/products',
+                             json=product.serialize(),
+                             content_type='application/json')
+        test_product = resp.get_json()
+        # update this product with stock > 0
+        test_product['stock'] = 10
+        resp = self.app.put('/products/{}'.format(test_product['id']),
+                            json=test_product,
+                            content_type='application/json')
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        updated_product = resp.get_json()
+        # check the data just to be sure
+        self.assertEqual(updated_product['stock'], test_product['stock'])
+        # buy this product
+        resp = self.app.put('/products/{}/buy'.format(updated_product['id']),
+                            json=updated_product,
+                            content_type='application/json')
+        # check the remain stock
+        bought_product = resp.get_json()
+        self.assertEqual(bought_product['stock'], updated_product['stock'] - 1)
+
+
+    def test_buy_product_out_of_stock(self):
+        """ Buy a Product out of stock """
+        # create a test product
+        product = ProductFactory()
+        resp = self.app.post('/products',
+                             json=product.serialize(),
+                             content_type='application/json')
+        test_product = resp.get_json()
+        # update this product with stock = 0
+        test_product['stock'] = 0
+        resp = self.app.put('/products/{}'.format(test_product['id']),
+                            json=test_product,
+                            content_type='application/json')
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        updated_product = resp.get_json()
+        # check the data just to be sure
+        self.assertEqual(updated_product['stock'], test_product['stock'])
+        # buy this product with failure
+        resp = self.app.put('/products/{}/buy'.format(updated_product['id']),
+                            json=updated_product,
+                            content_type='application/json')
+        self.assertEqual(resp.status_code, status.HTTP_204_NO_CONTENT)
+
+    def test_invalid_method_request(self):
+        """ Test a Invalid Request error """
+        resp = self.app.delete('/products', content_type='application/json')
+        self.assertEqual(resp.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
+
+    def test_unsupported_media_type_request(self):
+        """ Test a request with unsupported media type error """
+        test_product = ProductFactory()
+        resp = self.app.post('/products',
+                             json=test_product.serialize(),
+                             content_type='xxx')
+        self.assertEqual(resp.status_code, status.HTTP_415_UNSUPPORTED_MEDIA_TYPE)
 
     #####  Mock data #####
     @patch('service.model.Product.find_by_name')
@@ -200,3 +303,10 @@ class TestProductServer(unittest.TestCase):
         product_find_mock.return_value = [MagicMock(serialize=lambda: {'name': 'steak'})]
         resp = self.app.get('/products', query_string='name=steak')
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
+    
+    @patch('service.model.Product.find_by_name')
+    def test_internal_server_error(self, request_mock):
+        """ Test a request with internal_server_error """
+        request_mock.side_effect = internal_server_error("")
+        resp = self.app.get('/products', query_string='name=steak')
+        self.assertEqual(resp.status_code, status.HTTP_500_INTERNAL_SERVER_ERROR )

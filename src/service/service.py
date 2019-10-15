@@ -42,7 +42,7 @@ from service.model import Product, DataValidationError
 @app.route('/')
 def index():
     """ Root URL response """
-    return jsonify(name='Product Demo REST API Service',
+    return jsonify(name='Product REST API Service',
                    version='1.0',
                    paths=url_for('list_products', _external=True)
                    ), status.HTTP_200_OK
@@ -81,7 +81,7 @@ def list_products():
         products = Product.find_by_category(category)
     elif name:
         products = Product.find_by_name(name)
-    elif price and int(price) < 4: # query price by range
+    elif price and int(price) > 0 and int(price) < 4: # query price by range
         if int(price) == 1:
             products = Product.find_by_price(0, 25)
         elif int(price) == 2:
@@ -104,7 +104,7 @@ def create_products():
     This endpoint will create a Product based the data in the body that is posted
     """
     app.logger.info('Request to create a product')
-    # check_content_type('application/json')
+    check_content_type('application/json')
     product = Product()
     product.deserialize(request.get_json())
     product.save()
