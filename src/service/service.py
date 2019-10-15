@@ -116,6 +116,21 @@ def create_products():
                              'Location': location_url
     })
 
+######################################################################
+# UPDATING AN EXISTING PRODUCT
+######################################################################
+@app.route('/products/<int:id>',methods=['PUT'])
+def update_products(id):
+    app.logger.info('Request to update product with id: %s', id)
+    check_content_type('application/json')
+    product = Product.find(id)
+    if not product:
+        raise NotFound("Product with id {} was not found.".format(id))
+    product.deserialize(request.get_json())
+    product.id = id
+    product.save()
+    return make_response(jsonify(product.serialize()), status.HTTP_200_OK)
+
 
 ######################################################################
 # DELETE ADD A PRODUCT
