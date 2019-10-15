@@ -20,8 +20,8 @@ import random
 from factory.fuzzy import FuzzyChoice
 from service.model import Product
 
-MIN_PRICE = 10
-MAX_PRICE = 100
+MIN_PRICE = 0
+MAX_PRICE = 75
 MIN_STOCK = 0
 MAX_STOCK = 50
 
@@ -31,8 +31,8 @@ class ProductFactory(factory.Factory):
         model = Product
     id = factory.Sequence(lambda n: n)
     name = factory.Faker('first_name')
-    stock = factory.LazyAttribute(lambda x: random.randrange(MIN_STOCK, MAX_STOCK + 1))
-    price = factory.LazyAttribute(lambda x: random.randrange(MIN_PRICE, MAX_PRICE + 1))
+    stock = factory.LazyAttribute(lambda x: random.randrange(MIN_STOCK, MAX_STOCK))
+    price = factory.LazyAttribute(lambda x: round(random.uniform(MIN_PRICE,MAX_PRICE), 2))
     description = factory.Faker('sentence')
     category = FuzzyChoice(choices=['food', 'cloth', 'electronic', 'pet'])
 
