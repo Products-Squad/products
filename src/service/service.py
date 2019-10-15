@@ -81,7 +81,7 @@ def list_products():
         products = Product.find_by_category(category)
     elif name:
         products = Product.find_by_name(name)
-    elif int(price) < 4: # query price by range
+    elif price and int(price) < 4: # query price by range
         if int(price) == 1:
             products = Product.find_by_price(0, 25)
         elif int(price) == 2:

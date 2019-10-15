@@ -9,6 +9,7 @@ import logging.config
 import sys
 from flask.logging import default_handler
 from app import app
+from pathlib import Path
 
 
 class RobustFormatter(logging.Formatter):
@@ -115,5 +116,10 @@ def initialize_logging(log_level=logging.INFO):
         # datefmt='%m/%d/%Y %I:%M:%S %p'
         fmt = '[%(asctime)s] %(levelname)s in %(module)s: %(message)s'
         logging.basicConfig(stream=sys.stdout, level=log_level, format=fmt)
-        dirname = os.path.join(os.getcwd(), "data/log/")
-        #logging.config.dictConfig(get_logger_settings(dirname, True))
+        dir_name, file_name = os.path.split(os.path.abspath(__file__))
+        src_name = Path(dir_name).parent
+        log_dir_name = os.path.join(Path(src_name).parent,"data/log/")
+        if os.path.exists(log_dir_name) == False:
+            os.mkdir(Path(log_dir_name).parent)
+            os.mkdir(log_dir_name)
+        logging.config.dictConfig(get_logger_settings(log_dir_name, True))
