@@ -30,7 +30,7 @@ app.config['SQLALCHEMY_DATABASE_URI'] = DATABASE_URI
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SECRET_KEY'] = SECRET_KEY
 app.config['ENV'] = 'development'
-app.config['DEBUG'] = False
+app.config['DEBUG'] = True
 from service import service
 from loggin import logger
 
