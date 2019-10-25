@@ -51,6 +51,16 @@ class RobustFormatter(logging.Formatter):
             r.filename, r.lineno, value)
         return s
 
+from logging.handlers import WatchedFileHandler
+
+class MyFileHandler(WatchedFileHandler):
+    def __init__(self, filename, mode='a', encoding=None, delay=False):
+        WatchedFileHandler.__init__(self, filename, mode, encoding, delay)
+
+    def emit(self, record):
+        if not record.levelno == self.level:
+            return
+        WatchedFileHandler.emit(self, record)
 
 def get_logger_settings(log_dir, console_output=True):
     logger_settings = {
@@ -61,7 +71,7 @@ def get_logger_settings(log_dir, console_output=True):
             'logstash_log': {
                 '()': "loggin.logger.RobustFormatter"
             },
-            'debug': {
+            'fmt': {
                 'format': ('[%(asctime) - 6s]: %(name)s - %(levelname)s - '
                            '%(filename)s - %(funcName)s :\n'
                            '%(message)s;'),
@@ -70,39 +80,46 @@ def get_logger_settings(log_dir, console_output=True):
         },
         'handlers': {
             'console': {
-                'level': 'DEBUG',
+                'level': 'INFO',
                 'class': 'logging.StreamHandler',
-                'formatter': 'debug',
+                'formatter': 'fmt',
+                'stream': sys.stdout,
             },
             'info_file': {
                 'level': 'INFO',
-                'class': 'logging.handlers.WatchedFileHandler',
-                'formatter': 'logstash_log',
+                'class': 'loggin.logger.MyFileHandler',
+                'formatter': 'fmt',
                 'filename': os.path.join(log_dir, 'info.log'),
             },
             'debug_file': {
                 'level': 'DEBUG',
-                'class': 'logging.handlers.WatchedFileHandler',
-                'formatter': 'debug',
+                'class': 'loggin.logger.MyFileHandler',
+                'formatter': 'fmt',
                 'filename': os.path.join(log_dir, 'debug.log'),
             },
             'error_file': {
                 'level': 'ERROR',
-                'class': 'logging.handlers.WatchedFileHandler',
-                'formatter': 'debug',
+                'class': 'loggin.logger.MyFileHandler',
+                'formatter': 'fmt',
                 'filename': os.path.join(log_dir, 'error.log'),
             },
         },
         'loggers': {
+            'app': {
+                'level': 'INFO',
+                'handlers': ['info_file', 'debug_file', 'error_file'],
+                'propagate': False
+            }
         },
         'root': {
             'handlers': ['info_file', 'debug_file', 'error_file'],
-            'level': 'DEBUG',
+            'level': 'INFO',
+            'propagate': False
         }
     }
-
     if console_output:
         logger_settings["root"]["handlers"].insert(0, "console")
+        logger_settings["loggers"]["app"]["handlers"].insert(0, "console")
     return logger_settings
 
 # Setting up Logger
@@ -110,16 +127,21 @@ def get_logger_settings(log_dir, console_output=True):
 
 def initialize_logging(log_level=logging.INFO):
     """ Initialized the default logging to STDOUT """
+    print('Setting up logging...')
+    handler_list = list(app.logger.handlers)
+    for log_handler in handler_list:
+        app.logger.removeHandler(log_handler)
+    dir_name, file_name = os.path.split(os.path.abspath(__file__))
+    src_name = Path(dir_name).parent
+    log_dir_name = os.path.join(Path(src_name).parent,"data/log/")
+    if os.path.exists(log_dir_name) == False:
+        os.mkdir(Path(log_dir_name).parent)
+        os.mkdir(log_dir_name)
+    logging.config.dictConfig(get_logger_settings(log_dir_name, True))
     if not app.debug:
-        print('Setting up logging...')
         # Set up default logging for submodules to use STDOUT
         # datefmt='%m/%d/%Y %I:%M:%S %p'
-        fmt = '[%(asctime)s] %(levelname)s in %(module)s: %(message)s'
-        logging.basicConfig(stream=sys.stdout, level=log_level, format=fmt)
-        dir_name, file_name = os.path.split(os.path.abspath(__file__))
-        src_name = Path(dir_name).parent
-        log_dir_name = os.path.join(Path(src_name).parent,"data/log/")
-        if os.path.exists(log_dir_name) == False:
-            os.mkdir(Path(log_dir_name).parent)
-            os.mkdir(log_dir_name)
-        logging.config.dictConfig(get_logger_settings(log_dir_name, True))
+        app.logger.setLevel(log_level)
+    else:
+        app.logger.setLevel(logging.DEBUG)
+    app.logger.info('Logging handler established')
