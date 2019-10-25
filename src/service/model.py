@@ -44,7 +44,7 @@ class Product(db.Model):
     Class that represents a Product
     """
 
-    logger = logging.getLogger('flask.app')
+    logger = logging.getLogger('app')
     app = None
 
     # Table Schema
