@@ -28,7 +28,7 @@ PUT /products/{id}/buy - updates the purchase amoubt of a Product record
 from flask import Flask, jsonify, request, url_for, make_response, abort
 from flask_api import status
 # Import Flask application
-from app import app
+from . import app
 from werkzeug.exceptions import NotFound
 from service.model import Product, DataValidationError
 

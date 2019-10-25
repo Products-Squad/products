@@ -28,7 +28,7 @@ from unittest.mock import MagicMock, patch
 
 from service.model import Product, DataValidationError, db
 from .product_factory import ProductFactory
-from app import app
+from service import app
 from service.service import init_db, internal_server_error
 from loggin.logger import initialize_logging
 
