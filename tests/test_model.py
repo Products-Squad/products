@@ -23,7 +23,7 @@ import unittest
 import os
 from werkzeug.exceptions import NotFound
 from service.model import Product, DataValidationError, db
-from app import app
+from service import app
 from decimal import *
 
 DATABASE_URI = os.getenv(
