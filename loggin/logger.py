@@ -8,7 +8,7 @@ import traceback
 import logging.config
 import sys
 from flask.logging import default_handler
-from app import app
+from service import app
 from pathlib import Path
 
 
@@ -105,7 +105,7 @@ def get_logger_settings(log_dir, console_output=True):
             },
         },
         'loggers': {
-            'app': {
+            'service': {
                 'level': 'INFO',
                 'handlers': ['info_file', 'debug_file', 'error_file'],
                 'propagate': False
@@ -119,7 +119,7 @@ def get_logger_settings(log_dir, console_output=True):
     }
     if console_output:
         logger_settings["root"]["handlers"].insert(0, "console")
-        logger_settings["loggers"]["app"]["handlers"].insert(0, "console")
+        logger_settings["loggers"]["service"]["handlers"].insert(0, "console")
     return logger_settings
 
 # Setting up Logger
@@ -132,8 +132,7 @@ def initialize_logging(log_level=logging.INFO):
     for log_handler in handler_list:
         app.logger.removeHandler(log_handler)
     dir_name, file_name = os.path.split(os.path.abspath(__file__))
-    src_name = Path(dir_name).parent
-    log_dir_name = os.path.join(Path(src_name).parent,"data/log/")
+    log_dir_name = os.path.join(Path(dir_name).parent,"data/log/")
     if os.path.exists(log_dir_name) == False:
         os.mkdir(Path(log_dir_name).parent)
         os.mkdir(log_dir_name)
