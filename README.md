@@ -1,4 +1,6 @@
 # Products
+[![Build Status](https://travis-ci.org/Products-Squad/products.svg?branch=master)](https://travis-ci.org/Products-Squad/products)
+
 This is the remote master branch for the Products team.
 
 ### Products Service Description:
