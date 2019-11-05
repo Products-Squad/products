@@ -6,6 +6,7 @@ psycopg2-binary==2.8.3
 
 # runtime
 gunicorn==19.9.0
+honcho==1.0.1
 
 # Database
 
