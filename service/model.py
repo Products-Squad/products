@@ -70,6 +70,12 @@ class Product(db.Model):
         db.session.delete(self)
         db.session.commit()
 
+    @classmethod
+    def delete_all(cls):
+        Product.logger.info("Deleting all products")
+        db.session.query(cls).delete()
+        db.session.commit()
+
     def serialize(self):
         """ Serializes a Product into a dictionary """
         return {"id": self.id,

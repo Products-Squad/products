@@ -182,6 +182,17 @@ class TestProductServer(unittest.TestCase):
                             content_type='application/json')
         self.assertEqual(resp.status_code, status.HTTP_404_NOT_FOUND)
 
+    def test_delete_product_list(self):
+        """ Delete a list of Products """
+        self._create_products(5)
+        resp = self.app.get('/products')
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        data = resp.get_json()
+        self.assertEqual(len(data), 5)
+        resp = self.app.delete('/products')
+        self.assertEqual(resp.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertEqual(len(resp.data), 0)
+
     ##### Query a product #####
     def test_query_product_list_by_category(self):
         """ Query Products by Category """
@@ -291,7 +302,7 @@ class TestProductServer(unittest.TestCase):
 
     def test_invalid_method_request(self):
         """ Test a Invalid Request error """
-        resp = self.app.delete('/products', content_type='application/json')
+        resp = self.app.put('/products', content_type='application/json')
         self.assertEqual(resp.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
 
     def test_unsupported_media_type_request(self):
