@@ -145,6 +145,16 @@ def delete_products(id):
     return make_response('',status.HTTP_204_NO_CONTENT)
 
 ######################################################################
+# DELETE ALL PRODUCTS
+######################################################################
+@app.route('/products', methods=['DELETE'])
+def delete_products_all():
+    """delete all products"""
+    app.logger.info('Request to delete all products')
+    Product.delete_all()
+    return make_response('',status.HTTP_204_NO_CONTENT)
+
+######################################################################
 # BUY A PRODUCT
 ######################################################################
 @app.route('/products/<int:p_id>/buy', methods=['PUT'])
