@@ -1,7 +1,5 @@
 coverage:
   status:
-    project:
-      default: false  # disable the default status that measures entire project
-      tests:  # declare a new status context "tests"
+    patch:
+      default:
         target: 95%  # we always want 100% coverage here
-        paths: "tests/"  # only include coverage in "tests/" folder
