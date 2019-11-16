@@ -11,7 +11,7 @@ $(function () {
         $("#product_category").val(res.category);
         $("#product_price").val(res.price);
         $("#product_stock").val(res.stock);
-        $("#product_description").val(res.stock);
+        $("#product_description").val(res.description);
     }
 
     /// Clears all form fields
