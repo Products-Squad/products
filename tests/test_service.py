@@ -29,7 +29,7 @@ from unittest.mock import MagicMock, patch
 from service.model import Product, DataValidationError, db
 from .product_factory import ProductFactory
 from service import app
-from service.service import init_db, internal_server_error
+from service.service import init_db, request_validation_error
 from loggin.logger import initialize_logging
 
 DATABASE_URI = os.getenv('DATABASE_URI', 'postgres://postgres:postgres@localhost:5432/postgres')
@@ -82,9 +82,6 @@ class TestProductServer(unittest.TestCase):
         """ Test the Home Page """
         resp = self.app.get('/')
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
-        self.assertIn(b'Product Demo REST API Service', resp.data)
-        #data = resp.get_json()
-        #self.assertEqual(data['name'], 'Product REST API Service')
 
     ##### List products #####
     def test_get_product_list(self):
@@ -190,7 +187,7 @@ class TestProductServer(unittest.TestCase):
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
         data = resp.get_json()
         self.assertEqual(len(data), 5)
-        resp = self.app.delete('/products')
+        resp = self.app.delete('/products/reset')
         self.assertEqual(resp.status_code, status.HTTP_204_NO_CONTENT)
         self.assertEqual(len(resp.data), 0)
 
@@ -299,7 +296,7 @@ class TestProductServer(unittest.TestCase):
         resp = self.app.put('/products/{}/buy'.format(updated_product['id']),
                             json=updated_product,
                             content_type='application/json')
-        self.assertEqual(resp.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertEqual(resp.status_code, status.HTTP_409_CONFLICT)
 
     def test_invalid_method_request(self):
         """ Test a Invalid Request error """
@@ -314,14 +311,33 @@ class TestProductServer(unittest.TestCase):
                              content_type='xxx')
         self.assertEqual(resp.status_code, status.HTTP_415_UNSUPPORTED_MEDIA_TYPE)
 
-    #####  Mock data #####
-    @patch('service.model.Product.find_by_name')
-    def test_bad_request(self, bad_request_mock):
-        """ Test a Bad Request error from Find By Name """
-        bad_request_mock.side_effect = DataValidationError()
-        resp = self.app.get('/products', query_string='name=steak')
+    def test_update_product_missing_name(self):
+        """ Update a Product with missing name"""
+        # create a test product
+        product = ProductFactory()
+        resp = self.app.post('/products',
+                             json=product.serialize(),
+                             content_type='application/json')
+        test_product = resp.get_json()
+        del test_product['name']
+        resp = self.app.put('/products/{}'.format(test_product['id']), json=test_product,
+            content_type='application/json')
+        self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
+    
+    def test_update_product_with_empty_name(self):
+        """ Update a Product with empty name"""
+        # create a test product
+        product = ProductFactory()
+        resp = self.app.post('/products',
+                             json=product.serialize(),
+                             content_type='application/json')
+        test_product = resp.get_json()
+        test_product['name'] = ''
+        resp = self.app.put('/products/{}'.format(test_product['id']), json=test_product,
+            content_type='application/json')
         self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
 
+    #####  Mock data #####
     @patch('service.model.Product.find_by_name')
     def test_mock_search_data(self, product_find_mock):
         """ Test showing how to mock data """
@@ -331,7 +347,7 @@ class TestProductServer(unittest.TestCase):
     
     @patch('service.model.Product.find_by_name')
     def test_internal_server_error(self, request_mock):
-        """ Test a request with internal_server_error """
-        request_mock.side_effect = internal_server_error("")
+        """ Test a request with internal server error """
+        request_mock.return_value = None
         resp = self.app.get('/products', query_string='name=steak')
         self.assertEqual(resp.status_code, status.HTTP_500_INTERNAL_SERVER_ERROR )

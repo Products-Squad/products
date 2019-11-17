@@ -33,11 +33,9 @@ from flask_sqlalchemy import SQLAlchemy
 # Create the SQLAlchemy object to be initialized later in init_db()
 db = SQLAlchemy()
 
-
 class DataValidationError(Exception):
     """ Used for an data validation errors when deserializing """
     pass
-
 
 class Product(db.Model):
     """
@@ -91,6 +89,8 @@ class Product(db.Model):
             data (dict): A dictionary containing the Product data
         """
         try:
+            if data['name'] == '' or data['category'] == '' :
+                raise DataValidationError('Field cannot be empty string')
             self.name = data['name']
             self.stock = data['stock']
             self.price = data['price']
