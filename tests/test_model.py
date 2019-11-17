@@ -211,5 +211,3 @@ class TestProducts(unittest.TestCase):
         print(products[0].price)
         print(getcontext())
         self.assertAlmostEqual(products[0].price, Decimal(12.34))
-
-    

@@ -27,14 +27,15 @@ PUT /products/{id}/buy - updates the purchase amoubt of a Product record
 """
 from flask import Flask, jsonify, request, url_for, make_response, abort
 from flask_api import status
+from flask import jsonify, request, url_for, make_response
+from flask_restplus import Api, Resource, fields, reqparse, inputs
 # Import Flask application
 from . import app
 from werkzeug.exceptions import NotFound
 from service.model import Product, DataValidationError
 
-
 ######################################################################
-# RESTful Service
+# RESTPlus Service
 ######################################################################
 ######################################################################
 # GET INDEX
@@ -50,137 +51,248 @@ def index():
     return app.send_static_file('index.html')
 
 ######################################################################
-# RETRIEVE A PRODUCT
+# GET HEALTH CHECK
 ######################################################################
-@app.route('/products/<int:product_id>', methods=['GET'])
-def get_products(product_id):
-    """
-    Retrieve a single PRODUCT
-    This endpoint will return a Product based on it's id
-    """
-    app.logger.info('Request for product with id: %s', product_id)
-    product = Product.find(product_id)
-    if not product:
-        raise NotFound(
-            "Product with id '{}' was not found.".format(product_id))
-    return make_response(jsonify(product.serialize()), status.HTTP_200_OK)
-
+@app.route('/healthcheck')
+def healthcheck():
+    """ Let them know our heart is still beating """
+    return make_response(jsonify(status=200, message='Healthy'), status.HTTP_200_OK)
 
 ######################################################################
-# LIST ALL PRODUCTS
-# QUERY PRODUCTS LISTS BY ATTRIBUTE
+# Configure Swagger before initilaizing it
 ######################################################################
-@app.route('/products', methods=['GET'])
-def list_products():
-    """Returns all of the Products"""
-    app.logger.info('Request for product list')
-    products = []
-    category = request.args.get('category')
-    name = request.args.get('name')
-    price = request.args.get('price')
-    if category:
-        products = Product.find_by_category(category)
-    elif name:
-        products = Product.find_by_name(name)
-    elif price and int(price) > 0 and int(price) < 4: # query price by range
-        if int(price) == 1:
-            products = Product.find_by_price(0, 25)
-        elif int(price) == 2:
-            products = Product.find_by_price(25, 50)
+api = Api(app,
+          version='1.0.0',
+          title='Product REST API Service',
+          description='This is a Product server.',
+          default='products',
+          default_label='Product operations',
+          doc='/', # default also could use doc='/apidocs/'
+          #authorizations=authorizations
+          # prefix='/api'
+         )
+
+# query string arguments
+product_args = reqparse.RequestParser()
+product_args.add_argument('name', type=str, required=False, help='List Products by name')
+product_args.add_argument('category', type=str, required=False, help='List Products by category')
+product_args.add_argument('price', type=int, required=False, help='List Products by price')
+
+######################################################################
+# Special Error Handlers
+######################################################################
+@api.errorhandler(DataValidationError)
+def request_validation_error(error):
+    """ Handles Value Errors from bad data """
+    message = str(error)
+    app.logger.error(message)
+    return {'status_code': status.HTTP_400_BAD_REQUEST,
+            'error': 'Bad Request',
+            'message': message}, status.HTTP_400_BAD_REQUEST
+
+######################################################################
+#  PATH: /products/{id}
+######################################################################
+@api.route('/products/<product_id>')
+@api.param('product_id', 'The Product identifier')
+class ProductResource(Resource):
+    """
+    ProductResource class
+
+    Allows the manipulation of a single Product
+    GET /product{id} - Returns a Product with the id
+    PUT /product{id} - Update a Product with the id
+    DELETE /product{id} -  Deletes a Product with the id
+    """
+    #------------------------------------------------------------------
+    # RETRIEVE A PRODUCT
+    #------------------------------------------------------------------
+    @api.response(404, 'Product not found')
+    def get(self, product_id):
+        """
+        Retrieve a single PRODUCT 
+        This endpoint will return a Product based on it's id
+        """
+        app.logger.info('Request for product with id: %s', product_id)
+        product = Product.find(product_id)
+        if not product:
+            api.abort(status.HTTP_404_NOT_FOUND,
+                "Product with id '{}' was not found.".format(product_id))
+        return product.serialize(), status.HTTP_200_OK
+
+    #------------------------------------------------------------------
+    # UPDATE AN EXISTING PRODUCT
+    #------------------------------------------------------------------
+    @api.response(404, 'Product not found')
+    @api.response(400, 'The posted Product data was not valid')
+    def put(self, product_id):
+        app.logger.info('Request to update product with id: %s', product_id)
+        check_content_type('application/json')
+        product = Product.find(product_id)
+        if not product:
+            api.abort(status.HTTP_404_NOT_FOUND,
+                "Product with id {} was not found.".format(product_id))
+        app.logger.debug('Payload = %s', api.payload)
+        data = api.payload
+        product.deserialize(data)
+        print("data")
+        product.id = product_id
+        product.save()
+        return product.serialize(), status.HTTP_200_OK
+
+    #------------------------------------------------------------------
+    # DELETE A PRODUCT
+    #------------------------------------------------------------------
+    @api.response(204, 'Product deleted')
+    def delete(self, product_id):
+        """delete a product by id"""
+        app.logger.info('Request to delete product with the id [%s] provided', product_id)
+        product = Product.find(product_id)
+        if product:
+            product.delete()
+        return '',status.HTTP_204_NO_CONTENT
+
+######################################################################
+#  PATH: /products
+######################################################################
+@api.route('/products', strict_slashes=False)
+class ProductCollection(Resource):
+    """ Handles all interactions with collections of Products """
+    #------------------------------------------------------------------
+    # LIST ALL PRODUCTS
+    # QUERY PRODUCTS LISTS BY ATTRIBUTE
+    #------------------------------------------------------------------
+    @api.expect(product_args, validate=True)
+    def get(self):
+        """Returns all of the Products"""
+        app.logger.info('Request for product list')
+        products = []
+        args = product_args.parse_args()
+        category = args['category']
+        name = args['name']
+        price = args['price']
+        if category:
+            products = Product.find_by_category(category)
+        elif name:
+            products = Product.find_by_name(name)
+        elif price and int(price) > 0 and int(price) < 4: # query price by range
+            if int(price) == 1:
+                products = Product.find_by_price(0, 25)
+            elif int(price) == 2:
+                products = Product.find_by_price(25, 50)
+            else:
+                products = Product.find_by_price(50, 75)
         else:
-            products = Product.find_by_price(50, 75)
-    else:
-        products = Product.all()
-    results = [product.serialize() for product in products]
-    return make_response(jsonify(results), status.HTTP_200_OK)
-
-
-######################################################################
-# ADD A NEW PRODUCT
-######################################################################
-@app.route('/products', methods=['POST'])
-def create_products():
-    """
-    Creates a Product
-    This endpoint will create a Product based the data in the body that is posted
-    """
-    app.logger.info('Request to create a product')
-    check_content_type('application/json')
-    product = Product()
-    product.deserialize(request.get_json())
-    product.save()
-    message = product.serialize()
-    location_url = url_for(
-        'get_products', product_id=product.id, _external=True)
-    return make_response(jsonify(message), status.HTTP_201_CREATED,
-                         {
-                             'Location': location_url
-    })
+            products = Product.all()
+        results = [product.serialize() for product in products]
+        return results, status.HTTP_200_OK
+    
+    #------------------------------------------------------------------
+    # ADD A NEW PRODUCT
+    #------------------------------------------------------------------
+    @api.response(400, 'The posted Product data was not valid')
+    @api.response(201, 'Product created successfully')
+    def post(self):
+        """
+        Creates a Product
+        This endpoint will create a Product based the data in the body that is posted
+        """
+        app.logger.info('Request to create a product')
+        check_content_type('application/json')
+        product = Product()
+        app.logger.debug('Payload = %s', api.payload)
+        product.deserialize(api.payload)
+        product.save()
+        location_url = api.url_for(
+            ProductResource, product_id=product.id, _external=True)
+        return product.serialize(), status.HTTP_201_CREATED, {'Location': location_url}
 
 ######################################################################
-# UPDATING AN EXISTING PRODUCT
+#  PATH: /products/{id}/buy
 ######################################################################
-@app.route('/products/<int:id>',methods=['PUT'])
-def update_products(id):
-    app.logger.info('Request to update product with id: %s', id)
-    check_content_type('application/json')
-    product = Product.find(id)
-    if not product:
-        raise NotFound("Product with id {} was not found.".format(id))
-    product.deserialize(request.get_json())
-    product.id = id
-    product.save()
-    return make_response(jsonify(product.serialize()), status.HTTP_200_OK)
+@api.route('/products/<product_id>/buy')
+@api.param('product_id', 'The Product identifier')
+class BuyResource(Resource):
+    """ Buy actions on a Product """
+    #------------------------------------------------------------------
+    # BUY A PRODUCT
+    #------------------------------------------------------------------
+    @api.response(404, 'Product not found')
+    @api.response(409, 'The Product is not available for purchase')
+    def put(self, product_id):
+        """buy a product by id"""
+        app.logger.info('Request for buy a product')
+        product = Product.find(product_id)
+        if not product:
+            api.abort(status.HTTP_404_NOT_FOUND,
+                "Product with id '{}' was not found.".format(product_id))
+        elif product.stock == 0:
+            api.abort(status.HTTP_409_CONFLICT,
+            "Product with id '{}' has been sold out!".format(product_id))
+        else:
+            product.stock = product.stock - 1
+        product.save()
+        app.logger.info('Product with id [%s] has been bought!', product.id)
+        return product.serialize(), status.HTTP_200_OK
 
-
 ######################################################################
-# DELETE ADD A PRODUCT
+# DELETE ALL PRODUCTS (for testing only)
 ######################################################################
-@app.route('/products/<int:id>', methods=['DELETE'])
-def delete_products(id):
-    """delete a product by id"""
-    app.logger.info('Request to delete product with the id provided')
-    product = Product.find(id)
-    if product:
-        product.delete()
-    return make_response('',status.HTTP_204_NO_CONTENT)
-
-######################################################################
-# DELETE ALL PRODUCTS
-######################################################################
-@app.route('/products', methods=['DELETE'])
+@app.route('/products/reset', methods=['DELETE'])
 def delete_products_all():
     """delete all products"""
     app.logger.info('Request to delete all products')
     Product.delete_all()
     return make_response('',status.HTTP_204_NO_CONTENT)
 
-######################################################################
-# BUY A PRODUCT
-######################################################################
-@app.route('/products/<int:p_id>/buy', methods=['PUT'])
-def buy_products(p_id):
-    """buy a product by id"""
-    app.logger.info('Request for buy a product')
-    product = Product.find(p_id)
-    if not product:
-        raise NotFound("Product with id '{}' was not found.".format(p_id))
-    elif product.stock == 0:
-        message = "Product with id "+str(p_id)+" has been sold out!"
-        return make_response(no_content_request(message))
-    else:
-        product.stock = product.stock - 1
-    product.save()
-    return make_response(product.serialize(), status.HTTP_200_OK)
+# Deprecated code
+# @app.errorhandler(status.HTTP_404_NOT_FOUND)
+# def not_found(error):
+#     """ Handles resources not found with 404_NOT_FOUND """
+#     message = str(error)
+#     app.logger.warning(message)
+#     return jsonify(status=status.HTTP_404_NOT_FOUND,
+#                    error='Not Found',
+#                    message=message), status.HTTP_404_NOT_FOUND
+
+
+# @app.errorhandler(status.HTTP_405_METHOD_NOT_ALLOWED)
+# def method_not_supported(error):
+#     """ Handles unsuppoted HTTP methods with 405_METHOD_NOT_SUPPORTED """
+#     message = str(error)
+#     app.logger.warning(message)
+#     return jsonify(status=status.HTTP_405_METHOD_NOT_ALLOWED,
+#                    error='Method not Allowed',
+#                    message=message), status.HTTP_405_METHOD_NOT_ALLOWED
+
+
+# @app.errorhandler(status.HTTP_415_UNSUPPORTED_MEDIA_TYPE)
+# def mediatype_not_supported(error):
+#     """ Handles unsuppoted media requests with 415_UNSUPPORTED_MEDIA_TYPE """
+#     message = str(error)
+#     app.logger.warning(message)
+#     return jsonify(status=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
+#                    error='Unsupported media type',
+#                    message=message), status.HTTP_415_UNSUPPORTED_MEDIA_TYPE
+
+
+# @app.errorhandler(status.HTTP_500_INTERNAL_SERVER_ERROR)
+# def internal_server_error(error):
+#     """ Handles unexpected server error with 500_SERVER_ERROR """
+#     message = str(error)
+#     app.logger.error(message)
+#     return jsonify(status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+#                    error='Internal Server Error',
+#                    message=message), status.HTTP_500_INTERNAL_SERVER_ERROR
 
 ######################################################################
 #  U T I L I T Y   F U N C T I O N S
 ######################################################################
+@app.before_first_request
 def init_db():
     """ Initialies the SQLAlchemy app """
     global app
     Product.init_db(app)
-
 
 def check_content_type(content_type):
     """ Checks that the media type is correct """
@@ -189,70 +301,3 @@ def check_content_type(content_type):
     app.logger.error('Invalid Content-Type: %s',
                      request.headers['Content-Type'])
     abort(415, 'Content-Type must be {}'.format(content_type))
-
-def no_content_request(error):
-    """ Handles bad reuests with 204_NO_CONTENT """
-    message = str(error)
-    app.logger.warning(message)
-    return jsonify(status=status.HTTP_204_NO_CONTENT,
-                   error='No content',
-                   message=message), status.HTTP_204_NO_CONTENT
-
-
-######################################################################
-# Error Handlers
-######################################################################
-@app.errorhandler(DataValidationError)
-def request_validation_error(error):
-    """ Handles Value Errors from bad data """
-    return bad_request(error)
-
-
-@app.errorhandler(status.HTTP_400_BAD_REQUEST)
-def bad_request(error):
-    """ Handles bad reuests with 400_BAD_REQUEST """
-    message = str(error)
-    app.logger.warning(message)
-    return jsonify(status=status.HTTP_400_BAD_REQUEST,
-                   error='Bad Request',
-                   message=message), status.HTTP_400_BAD_REQUEST
-
-
-@app.errorhandler(status.HTTP_404_NOT_FOUND)
-def not_found(error):
-    """ Handles resources not found with 404_NOT_FOUND """
-    message = str(error)
-    app.logger.warning(message)
-    return jsonify(status=status.HTTP_404_NOT_FOUND,
-                   error='Not Found',
-                   message=message), status.HTTP_404_NOT_FOUND
-
-
-@app.errorhandler(status.HTTP_405_METHOD_NOT_ALLOWED)
-def method_not_supported(error):
-    """ Handles unsuppoted HTTP methods with 405_METHOD_NOT_SUPPORTED """
-    message = str(error)
-    app.logger.warning(message)
-    return jsonify(status=status.HTTP_405_METHOD_NOT_ALLOWED,
-                   error='Method not Allowed',
-                   message=message), status.HTTP_405_METHOD_NOT_ALLOWED
-
-
-@app.errorhandler(status.HTTP_415_UNSUPPORTED_MEDIA_TYPE)
-def mediatype_not_supported(error):
-    """ Handles unsuppoted media requests with 415_UNSUPPORTED_MEDIA_TYPE """
-    message = str(error)
-    app.logger.warning(message)
-    return jsonify(status=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
-                   error='Unsupported media type',
-                   message=message), status.HTTP_415_UNSUPPORTED_MEDIA_TYPE
-
-
-@app.errorhandler(status.HTTP_500_INTERNAL_SERVER_ERROR)
-def internal_server_error(error):
-    """ Handles unexpected server error with 500_SERVER_ERROR """
-    message = str(error)
-    app.logger.error(message)
-    return jsonify(status=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                   error='Internal Server Error',
-                   message=message), status.HTTP_500_INTERNAL_SERVER_ERROR

@@ -5,9 +5,9 @@ Feature: The product service back-end
 
 Background:
     Given the following products
-        | id |             name              | stock | price |                      description                        | category |
-        | 1  |    Wagyu Tenderloin Steak     |	 11  | 20.56 |	   The most decadent, succulent cut of beef, ever.     |   Food   | 
-	    | 2  |      Y type Headphones        |   10  | 30.99 |       The best over-ear headphones for audiophiles      |Electronics|
+        |             name              | stock | price |                      description                        | category |
+        |    Wagyu Tenderloin Steak     |	 11  | 20.56 |	   The most decadent, succulent cut of beef, ever.     |   Food   | 
+	    |      Y type Headphones        |   10  | 30.99 |       The best over-ear headphones for audiophiles      |Electronics|
 
 Scenario: The server is running
     When I visit the "Home Page"

@@ -23,7 +23,7 @@ WAIT_SECONDS = int(getenv('WAIT_SECONDS', '60'))
 def step_impl(context):
     """ Delete all Products and load new ones """
     headers = {'Content-Type': 'application/json'}
-    context.resp = requests.delete(context.base_url + '/products')
+    context.resp = requests.delete(context.base_url + '/products/reset')
     expect(context.resp.status_code).to_equal(204)
     create_url = context.base_url + '/products'
     for row in context.table:
@@ -37,3 +37,8 @@ def step_impl(context):
         payload = json.dumps(data)
         context.resp = requests.post(create_url, data=payload, headers=headers)
         expect(context.resp.status_code).to_equal(201)
+
+@when('I visit the "home page"')
+def step_impl(context):
+    """ Make a call to the base URL """
+    context.driver.get(context.base_url)

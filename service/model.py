@@ -29,15 +29,14 @@ category (string) - the category the product belongs to (i.e. apparel, Electric 
 
 import logging
 from flask_sqlalchemy import SQLAlchemy
+import flask
 
 # Create the SQLAlchemy object to be initialized later in init_db()
 db = SQLAlchemy()
 
-
 class DataValidationError(Exception):
     """ Used for an data validation errors when deserializing """
     pass
-
 
 class Product(db.Model):
     """
@@ -91,6 +90,8 @@ class Product(db.Model):
             data (dict): A dictionary containing the Product data
         """
         try:
+            if data['name'] == '' or data['category'] == '' :
+                raise DataValidationError('Field cannot be empty string')
             self.name = data['name']
             self.stock = data['stock']
             self.price = data['price']
@@ -111,8 +112,10 @@ class Product(db.Model):
         cls.app = app
         # This is where we initialize SQLAlchemy from the Flask app
         db.init_app(app)
-        app.app_context().push()
-        db.create_all()  # make our sqlalchemy tables
+        if flask.has_request_context() == False:
+            app.app_context().push()
+        with app.app_context():
+            db.create_all()  # make our sqlalchemy tables
 
     @classmethod
     def find(cls, product_id):
