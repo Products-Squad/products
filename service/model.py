@@ -52,7 +52,6 @@ class Product(db.Model):
     name = db.Column(db.String(50))
     stock = db.Column(db.Integer)
     price = db.Column(db.Numeric(18,2))
-
     description = db.Column(db.String(255))
     category = db.Column(db.String(50))
 
