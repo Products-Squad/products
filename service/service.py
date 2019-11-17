@@ -167,10 +167,9 @@ class ProductCollection(Resource):
         """Returns all of the Products"""
         app.logger.info('Request for product list')
         products = []
-        args = product_args.parse_args()
-        category = args['category']
-        name = args['name']
-        price = args['price']
+        category = request.args.get('category')
+        name = request.args.get('name')
+        price = request.args.get('price')
         if category:
             products = Product.find_by_category(category)
         elif name:

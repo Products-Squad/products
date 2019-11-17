@@ -125,7 +125,7 @@ class Product(db.Model):
 
     @classmethod
     def find_by_category(cls, category):
-        cls.logger.info('Processing category query for %s...', category)
+        cls.logger.info('Processing category query for %s ...', category)
         return cls.query.filter(cls.category == category)
 
     @classmethod

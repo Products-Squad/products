@@ -168,7 +168,7 @@ $(function () {
     });
 
     // ****************************************
-    // Search for a Product -- should modify!!
+    // Search for a Product
     // ****************************************
 
     $("#search-btn").click(function () {
@@ -208,23 +208,26 @@ $(function () {
             header += '<th style="width:10%">ID</th>'
             header += '<th style="width:40%">Name</th>'
             header += '<th style="width:40%">Category</th>'
-            header += '<th style="width:10%">Available</th></tr>'
+            header += '<th style="width:40%">Price</th>'
+            header += '<th style="width:40%">Stock</th>'
+            header += '<th style="width:40%">Description</th>'
             $("#search_results").append(header);
-            var firstPet = "";
+            var firstProduct = "";
             for(var i = 0; i < res.length; i++) {
-                var pet = res[i];
-                var row = "<tr><td>"+pet._id+"</td><td>"+pet.name+"</td><td>"+pet.category+"</td><td>"+pet.available+"</td></tr>";
+                var product = res[i];
+                var row = "<tr><td>"+product.id+"</td><td>"+product.name+"</td><td>"+product.category+"</td><td>"+
+                product.price+"</td><td>"+product.stock+"</td><td>"+product.description+"</td></tr>";
                 $("#search_results").append(row);
                 if (i == 0) {
-                    firstPet = pet;
+                    firstProduct = product;
                 }
             }
 
             $("#search_results").append('</table>');
 
             // copy the first result to the form
-            if (firstPet != "") {
-                update_form_data(firstPet)
+            if (firstProduct != "") {
+                update_form_data(firstProduct)
             }
 
             flash_message("Success")
@@ -234,6 +237,31 @@ $(function () {
             flash_message(res.responseJSON.message)
         });
 
+    });
+
+    // ****************************************
+    // Buy a Product
+    // ****************************************
+
+    $("#buy-btn").click(function () {
+
+        var product_id = $("#product_id").val();
+
+        var ajax = $.ajax({
+            type: "PUT",
+            url: "/products/" + product_id + "/buy",
+            contentType: "application/json",
+            data: '',
+        })
+
+        ajax.done(function(res){
+            update_form_data(res)
+            flash_message("Success")
+        });
+
+        ajax.fail(function(res){
+            flash_message(res.responseJSON.message)
+        });
     });
 
 })
