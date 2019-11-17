@@ -175,32 +175,27 @@ $(function () {
 
         var name = $("#product_name").val();
         var category = $("#product_category").val();
-        //var available = $("#pet_available").val() == "true";
+        var price = $("#product_price").val();
 
         var queryString = ""
 
         if (name) {
-            queryString += 'name=' + name
+            queryString += '?name=' + name
         }
         if (category) {
             if (queryString.length > 0) {
                 queryString += '&category=' + category
             } else {
-                queryString += 'category=' + category
+                queryString += '?category=' + category
             }
         }
-        // modify here
-        if (available) {
-            if (queryString.length > 0) {
-                queryString += '&available=' + available
-            } else {
-                queryString += 'available=' + available
-            }
+        if (price) {
+            queryString += '?price=' + price
         }
 
         var ajax = $.ajax({
             type: "GET",
-            url: "/products?" + queryString,
+            url: "/products" + queryString,
             contentType: "application/json",
             data: ''
         })

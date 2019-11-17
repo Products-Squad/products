@@ -11,7 +11,7 @@ Background:
 
 Scenario: The server is running
     When I visit the "Home Page"
-    Then I should see "Product Demo RESTful API Service" in the title
+    Then I should see "Product RESTful Service" in the title
     And I should not see "404 Not Found"
 
 Scenario: Create a Product
@@ -52,7 +52,7 @@ Scenario: List by Category
     Then I should see "Wagyu Tenderloin Steak" in the results
     And I should not see "Y type Headphones" in the results
 
- Scenario: List  by Name
+ Scenario: List by Name
     When I visit the "Home Page"
     And I set the "Name" to "Wagyu Tenderloin Steak"
     And I press the "Search" button
