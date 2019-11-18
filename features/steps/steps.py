@@ -167,3 +167,34 @@ def step_impl(context, element_name):
     )
     element.clear()
     element.send_keys(context.clipboard)
+
+##################################################################
+# Field
+##################################################################
+@then('the "{element_name}" field should be empty')
+def step_impl(context, element_name):
+    element_id = 'product_' + element_name.lower()
+    element = context.driver.find_element_by_id(element_id)
+    expect(element.get_attribute('value')).to_be(u'')
+
+@then('I should see "{text_string}" in the "{element_name}" field')
+def step_impl(context, text_string, element_name):
+    element_id = 'product_' + element_name.lower()
+    # element = context.driver.find_element_by_id(element_id)
+    # expect(element.get_attribute('value')).to_equal(text_string)
+    found = WebDriverWait(context.driver, WAIT_SECONDS).until(
+        expected_conditions.text_to_be_present_in_element_value(
+            (By.ID, element_id),
+            text_string
+        )
+    )
+    expect(found).to_be(True)
+
+@when('I change "{element_name}" to "{new_name}"')
+def step_impl(context, element_name, new_name):
+    element_id = 'product_' + element_name.lower()
+    element = WebDriverWait(context.driver, WAIT_SECONDS).until(
+        expected_conditions.presence_of_element_located((By.ID, element_id))
+    )
+    element.clear()
+    element.send_keys(new_name)
