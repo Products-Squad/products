@@ -25,6 +25,8 @@ DELETE /products/{id} - deletes a Product record in the database
 GET /products?category={category} - query a list of the Products match the specific category
 PUT /products/{id}/buy - updates the purchase amoubt of a Product record
 """
+import uuid
+from functools import wraps
 from flask import Flask, jsonify, request, url_for, make_response, abort
 from flask_api import status
 from flask import jsonify, request, url_for, make_response
@@ -33,6 +35,44 @@ from flask_restplus import Api, Resource, fields, reqparse, inputs
 from . import app
 from werkzeug.exceptions import NotFound
 from service.model import Product, DataValidationError
+
+
+# The type of autorization required
+authorizations = {
+    'apikey': {
+        'type': 'apiKey',
+        'in': 'header',
+        'name': 'X-Api-Key'
+    }
+}
+
+######################################################################
+# Generate a random API key
+######################################################################
+
+
+def generate_apikey():
+    """ Helper function used when testing API keys """
+    return uuid.uuid4().hex
+
+
+######################################################################
+# Authorization Decorator
+######################################################################
+
+def token_required(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        token = None
+        if 'X-Api-Key' in request.headers:
+            token = request.headers['X-Api-Key']
+
+        if app.config.get('API_KEY') and app.config['API_KEY'] == token:
+            return f(*args, **kwargs)
+        else:
+            return {'message': 'Invalid or missing token'}, 401
+    return decorated
+
 
 ######################################################################
 # RESTPlus Service
@@ -58,6 +98,7 @@ def healthcheck():
     """ Let them know our heart is still beating """
     return make_response(jsonify(status=200, message='Healthy'), status.HTTP_200_OK)
 
+
 ######################################################################
 # Configure Swagger before initilaizing it
 ######################################################################
@@ -67,16 +108,19 @@ api = Api(app,
           description='This is a Product server.',
           default='products',
           default_label='Product operations',
-          doc='/', # default also could use doc='/apidocs/'
-          #authorizations=authorizations
+          doc='/',  # default also could use doc='/apidocs/'
+          authorizations=authorizations
           # prefix='/api'
-         )
+          )
 
 # query string arguments
 product_args = reqparse.RequestParser()
-product_args.add_argument('name', type=str, required=False, help='List Products by name')
-product_args.add_argument('category', type=str, required=False, help='List Products by category')
-product_args.add_argument('price', type=int, required=False, help='List Products by price')
+product_args.add_argument(
+    'name', type=str, required=False, help='List Products by name')
+product_args.add_argument('category', type=str,
+                          required=False, help='List Products by category')
+product_args.add_argument(
+    'price', type=int, required=False, help='List Products by price')
 
 ######################################################################
 # Special Error Handlers
@@ -104,9 +148,9 @@ class ProductResource(Resource):
     PUT /product{id} - Update a Product with the id
     DELETE /product{id} -  Deletes a Product with the id
     """
-    #------------------------------------------------------------------
+    # ------------------------------------------------------------------
     # RETRIEVE A PRODUCT
-    #------------------------------------------------------------------
+    # ------------------------------------------------------------------
     @api.response(404, 'Product not found')
     def get(self, product_id):
         """
@@ -117,12 +161,12 @@ class ProductResource(Resource):
         product = Product.find(product_id)
         if not product:
             api.abort(status.HTTP_404_NOT_FOUND,
-                "Product with id '{}' was not found.".format(product_id))
+                      "Product with id '{}' was not found.".format(product_id))
         return product.serialize(), status.HTTP_200_OK
 
-    #------------------------------------------------------------------
+    # ------------------------------------------------------------------
     # UPDATE AN EXISTING PRODUCT
-    #------------------------------------------------------------------
+    # ------------------------------------------------------------------
     @api.response(404, 'Product not found')
     @api.response(400, 'The posted Product data was not valid')
     def put(self, product_id):
@@ -131,7 +175,7 @@ class ProductResource(Resource):
         product = Product.find(product_id)
         if not product:
             api.abort(status.HTTP_404_NOT_FOUND,
-                "Product with id {} was not found.".format(product_id))
+                      "Product with id {} was not found.".format(product_id))
         app.logger.debug('Payload = %s', api.payload)
         data = api.payload
         product.deserialize(data)
@@ -140,17 +184,18 @@ class ProductResource(Resource):
         product.save()
         return product.serialize(), status.HTTP_200_OK
 
-    #------------------------------------------------------------------
+    # ------------------------------------------------------------------
     # DELETE A PRODUCT
-    #------------------------------------------------------------------
+    # ------------------------------------------------------------------
     @api.response(204, 'Product deleted')
     def delete(self, product_id):
         """delete a product by id"""
-        app.logger.info('Request to delete product with the id [%s] provided', product_id)
+        app.logger.info(
+            'Request to delete product with the id [%s] provided', product_id)
         product = Product.find(product_id)
         if product:
             product.delete()
-        return '',status.HTTP_204_NO_CONTENT
+        return '', status.HTTP_204_NO_CONTENT
 
 ######################################################################
 #  PATH: /products
@@ -158,10 +203,10 @@ class ProductResource(Resource):
 @api.route('/products', strict_slashes=False)
 class ProductCollection(Resource):
     """ Handles all interactions with collections of Products """
-    #------------------------------------------------------------------
+    # ------------------------------------------------------------------
     # LIST ALL PRODUCTS
     # QUERY PRODUCTS LISTS BY ATTRIBUTE
-    #------------------------------------------------------------------
+    # ------------------------------------------------------------------
     @api.expect(product_args, validate=True)
     def get(self):
         """Returns all of the Products"""
@@ -174,7 +219,7 @@ class ProductCollection(Resource):
             products = Product.find_by_category(category)
         elif name:
             products = Product.find_by_name(name)
-        elif price and int(price) > 0 and int(price) < 4: # query price by range
+        elif price and int(price) > 0 and int(price) < 4:  # query price by range
             if int(price) == 1:
                 products = Product.find_by_price(0, 25)
             elif int(price) == 2:
@@ -185,10 +230,10 @@ class ProductCollection(Resource):
             products = Product.all()
         results = [product.serialize() for product in products]
         return results, status.HTTP_200_OK
-    
-    #------------------------------------------------------------------
+
+    # ------------------------------------------------------------------
     # ADD A NEW PRODUCT
-    #------------------------------------------------------------------
+    # ------------------------------------------------------------------
     @api.response(400, 'The posted Product data was not valid')
     @api.response(201, 'Product created successfully')
     def post(self):
@@ -213,9 +258,9 @@ class ProductCollection(Resource):
 @api.param('product_id', 'The Product identifier')
 class BuyResource(Resource):
     """ Buy actions on a Product """
-    #------------------------------------------------------------------
+    # ------------------------------------------------------------------
     # BUY A PRODUCT
-    #------------------------------------------------------------------
+    # ------------------------------------------------------------------
     @api.response(404, 'Product not found')
     @api.response(409, 'The Product is not available for purchase')
     def put(self, product_id):
@@ -224,10 +269,10 @@ class BuyResource(Resource):
         product = Product.find(product_id)
         if not product:
             api.abort(status.HTTP_404_NOT_FOUND,
-                "Product with id '{}' was not found.".format(product_id))
+                      "Product with id '{}' was not found.".format(product_id))
         elif product.stock == 0:
             api.abort(status.HTTP_409_CONFLICT,
-            "Product with id '{}' has been sold out!".format(product_id))
+                      "Product with id '{}' has been sold out!".format(product_id))
         else:
             product.stock = product.stock - 1
         product.save()
@@ -242,7 +287,7 @@ def delete_products_all():
     """delete all products"""
     app.logger.info('Request to delete all products')
     Product.delete_all()
-    return make_response('',status.HTTP_204_NO_CONTENT)
+    return make_response('', status.HTTP_204_NO_CONTENT)
 
 # Deprecated code
 # @app.errorhandler(status.HTTP_404_NOT_FOUND)
@@ -292,6 +337,7 @@ def init_db():
     """ Initialies the SQLAlchemy app """
     global app
     Product.init_db(app)
+
 
 def check_content_type(content_type):
     """ Checks that the media type is correct """
