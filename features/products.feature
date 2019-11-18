@@ -61,7 +61,11 @@ Scenario: List by Category
 
 Scenario: Retrieve a Product
     When I visit the "Home Page"
-    And I set the "Id" to "1"
+    And I set the "Name" to "Wagyu Tenderloin Steak"
+    And I press the "Search" button
+    When I copy the "Id" field
+    And I press the "Clear" button
+    When I paste the "Id" field
     And I press the "Retrieve" button
     Then I should see "Wagyu Tenderloin Steak" in the "Name" field
     And I should see "11" in the "Stock" field
@@ -71,13 +75,17 @@ Scenario: Retrieve a Product
     
 Scenario: Update a Product
     When I visit the "Home Page"
-    And I set the "Id" to "1"
+    And I set the "Name" to "Wagyu Tenderloin Steak"
+    And I press the "Search" button
+    When I copy the "Id" field
+    And I press the "Clear" button
+    When I paste the "Id" field
     And I press the "Retrieve" button 
     Then I should see "Wagyu Tenderloin Steak" in the "Name" field
     When I change "Name" to "Wagyu Tenderloin Beef"
     And I press the "Update" button
     Then I should see the message "Success"
-    When I set the "Id" to "1"
+    When I paste the "Id" field
     And I press the "Retrieve" button
     Then I should see "Wagyu Tenderloin Beef" in the "Name" field
     When I press the "Clear" button 
@@ -87,23 +95,32 @@ Scenario: Update a Product
 
 Scenario: Delete a Product
     When I visit the "Home Page"
-    And I set the "Id" to "1"
+    And I set the "Name" to "Wagyu Tenderloin Steak"
+    And I press the "Search" button
+    When I copy the "Id" field
+    And I press the "Clear" button
+    When I paste the "Id" field
     And I press the "Delete" button 
     Then I should see the message "Product has been Deleted!"
     When I press the "Clear" button
-    And I set the "Id" to "1"
+    When I paste the "Id" field
     And I press the "Search" button
     Then I should not see "Wagyu Tenderloin Steak" in the results
 
 Scenario: Buy a Product
     When I visit the "Home Page"
-    And I set the "Id" to "2"
+    When I visit the "Home Page"
+    And I set the "Name" to "Wagyu Tenderloin Steak"
+    And I press the "Search" button
+    When I copy the "Id" field
+    And I press the "Clear" button
+    When I paste the "Id" field
     And I press the "Retrieve" button
-    Then I should see "10" in the "Stock" field
+    Then I should see "11" in the "Stock" field
     When I press the "Buy" button
     Then I should see the message "Success"
     When I press the "Clear" button
-    And I set the "Id" to "2"
+    When I paste the "Id" field
     And I press the "Retrieve" button
-    Then I should see "9" in the "Stock" field
+    Then I should see "10" in the "Stock" field
 
