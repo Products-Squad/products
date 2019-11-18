@@ -69,6 +69,14 @@ def step_impl(context, button):
     context.driver.find_element_by_id(button_id).click()
 
 
+@when(u'I change "{element_name}" to "{text_string}"')
+def step_impl(context, element_name, text_string):
+    element_id = 'product_' + element_name.lower()
+    element = context.driver.find_element_by_id(element_id)
+    element.clear()
+    element.send_keys(text_string)
+
+
 ##################################################################
 # Check Message / Result / Field
 ##################################################################
