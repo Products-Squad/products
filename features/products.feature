@@ -77,27 +77,26 @@ Feature: The product service back-end
 
     Scenario: Update a Product
         When I visit the "Home Page"
-        And I set the "Name" to "Wagyu Tenderloin Steak"
+        And I set the "Name" to "King series Watches"
         And I press the "Search" button
-        When I copy the "Id" field
-        And I press the "Clear" button
-        When I paste the "Id" field
-        And I press the "Retrieve" button
-        Then I should see "Wagyu Tenderloin Steak" in the "Name" field
-        When I change "Name" to "Wagyu Tenderloin Beef"
+        Then I should see "King series Watches" in the "Name" field
+        And I should see "Accessories" in the "Category" field
+        When I change "Name" to "Queen series Watches"
         And I press the "Update" button
         Then I should see the message "Success"
-        When I paste the "Id" field
+        When I copy the "Id" field
+        And I press the "Clear" button
+        And I paste the "Id" field
         And I press the "Retrieve" button
-        Then I should see "Wagyu Tenderloin Beef" in the "Name" field
+        Then I should see "Queen series Watches" in the "Name" field
         When I press the "Clear" button
         And I press the "Search" button
-        Then I should see "Wagyu Tenderloin Beef" in the results
-        And I should not see "Wagyu Tenderloin Steak" in the results
+        Then I should see "Queen series Watches" in the results
+        And I should not see "King series Watches" in the results
 
     Scenario: Delete a Product
         When I visit the "Home Page"
-        And I set the "Name" to "Wagyu Tenderloin Steak"
+        And I set the "Name" to "King series Watches"
         And I press the "Search" button
         When I copy the "Id" field
         And I press the "Clear" button
@@ -107,7 +106,7 @@ Feature: The product service back-end
         When I press the "Clear" button
         When I paste the "Id" field
         And I press the "Search" button
-        Then I should not see "Wagyu Tenderloin Steak" in the results
+        Then I should not see "King series Watches" in the results
 
     Scenario: Buy a Product
         When I visit the "Home Page"
