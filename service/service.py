@@ -72,6 +72,28 @@ api = Api(app,
           # prefix='/api'
          )
 
+
+# Define data model so that docs reflect what can be sent 
+product_model = api.model('Product', {
+    'id': fields.Integer(readOnly=True, 
+                         description='A unique id is assigned automatically by service'),
+    'name': fields.String(required=True,
+                          description='The name of the product'),
+    'price': fields.Float(required=True,
+                          description='The price of the product'),
+    'stock': fields.Integer(required=True,
+                            description='The number of the product in stock'),
+    'description': fields.String(required=True,
+                                 description='Information describing the product'),
+    'category': fields.String(required=True,
+                              description='The category of the product')
+    
+    })
+
+
+
+
+
 # query string arguments
 product_args = reqparse.RequestParser()
 product_args.add_argument('name', type=str, required=False, help='List Products by name')
