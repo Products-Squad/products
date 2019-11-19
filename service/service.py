@@ -67,7 +67,7 @@ api = Api(app,
           description='This is a Product server.',
           default='products',
           default_label='Product operations',
-          doc='/', # default also could use doc='/apidocs/'
+          doc='/apidocs', # default also could use doc='/apidocs/'
           #authorizations=authorizations
           # prefix='/api'
          )
@@ -90,7 +90,18 @@ product_model = api.model('Product', {
     
     })
 
-
+create_model = api.model('Product', {
+    'name': fields.String(required=True,
+                          description='The name of the product'),
+    'price': fields.Float(required=True,
+                          description='The price of the product'),
+    'stock': fields.Integer(required=True,
+                            description='The number of the product in stock'),
+    'description': fields.String(required=True,
+                                 description='Information describing the product'),
+    'category': fields.String(required=True,
+                              description='The category of the product')
+})
 
 
 
@@ -129,10 +140,12 @@ class ProductResource(Resource):
     #------------------------------------------------------------------
     # RETRIEVE A PRODUCT
     #------------------------------------------------------------------
+    @api.doc('get_products')
     @api.response(404, 'Product not found')
+    @api.marshal_with(product_model)
     def get(self, product_id):
         """
-        Retrieve a single PRODUCT 
+        Retrieve a single Product 
         This endpoint will return a Product based on it's id
         """
         app.logger.info('Request for product with id: %s', product_id)
@@ -145,8 +158,11 @@ class ProductResource(Resource):
     #------------------------------------------------------------------
     # UPDATE AN EXISTING PRODUCT
     #------------------------------------------------------------------
+    @api.doc('update_products') #, security='apikey')
     @api.response(404, 'Product not found')
     @api.response(400, 'The posted Product data was not valid')
+    @api.expect(product_model)
+    @api.marshal_with(product_model)
     def put(self, product_id):
         app.logger.info('Request to update product with id: %s', product_id)
         check_content_type('application/json')
@@ -157,7 +173,6 @@ class ProductResource(Resource):
         app.logger.debug('Payload = %s', api.payload)
         data = api.payload
         product.deserialize(data)
-        print("data")
         product.id = product_id
         product.save()
         return product.serialize(), status.HTTP_200_OK
@@ -165,9 +180,10 @@ class ProductResource(Resource):
     #------------------------------------------------------------------
     # DELETE A PRODUCT
     #------------------------------------------------------------------
+    @api.doc('delete_products') #, security='apikey')
     @api.response(204, 'Product deleted')
     def delete(self, product_id):
-        """delete a product by id"""
+        """Delete a Product by id"""
         app.logger.info('Request to delete product with the id [%s] provided', product_id)
         product = Product.find(product_id)
         if product:
@@ -184,7 +200,9 @@ class ProductCollection(Resource):
     # LIST ALL PRODUCTS
     # QUERY PRODUCTS LISTS BY ATTRIBUTE
     #------------------------------------------------------------------
+    @api.doc('list_products')
     @api.expect(product_args, validate=True)
+    @api.marshal_list_with(product_model)
     def get(self):
         """Returns all of the Products"""
         app.logger.info('Request for product list')
@@ -211,8 +229,11 @@ class ProductCollection(Resource):
     #------------------------------------------------------------------
     # ADD A NEW PRODUCT
     #------------------------------------------------------------------
+    @api.doc('create_products') #, security='apikey')
+    @api.expect(create_model)
     @api.response(400, 'The posted Product data was not valid')
     @api.response(201, 'Product created successfully')
+    @api.marshal_with(product_model, code=201)
     def post(self):
         """
         Creates a Product
@@ -238,10 +259,12 @@ class BuyResource(Resource):
     #------------------------------------------------------------------
     # BUY A PRODUCT
     #------------------------------------------------------------------
+    @api.doc('buy_products')
     @api.response(404, 'Product not found')
     @api.response(409, 'The Product is not available for purchase')
+    @api.marshal_with(product_model)
     def put(self, product_id):
-        """buy a product by id"""
+        """Buy a Product by id"""
         app.logger.info('Request for buy a product')
         product = Product.find(product_id)
         if not product:
@@ -261,7 +284,7 @@ class BuyResource(Resource):
 ######################################################################
 @app.route('/products/reset', methods=['DELETE'])
 def delete_products_all():
-    """delete all products"""
+    """Delete all Products"""
     app.logger.info('Request to delete all products')
     Product.delete_all()
     return make_response('',status.HTTP_204_NO_CONTENT)
