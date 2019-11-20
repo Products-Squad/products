@@ -4,6 +4,8 @@ $(function () {
     //  U T I L I T Y   F U N C T I O N S
     // ****************************************
 
+    var $api_key = "";
+
     // Updates the form with data from the response
     function update_form_data(res) { //response object
         $("#product_id").val(res.id);
@@ -29,6 +31,10 @@ $(function () {
         $("#flash_message").append(message);
     }
 
+    $("#auth-btn").click(function () {
+        $api_key = $("#product_api").val();
+    });
+
     // ****************************************
     // Create a Product
     // ****************************************
@@ -48,9 +54,14 @@ $(function () {
             "description" : description
         };
 
+        var headers = {
+            'X-Api-Key': $api_key
+        };
+
         var ajax = $.ajax({
             type: "POST",
             url: "/products",
+            headers: headers,
             contentType: "application/json",
             data: JSON.stringify(data),
         });
@@ -87,9 +98,14 @@ $(function () {
             "description": description
         };
 
+        var headers = {
+            'X-Api-Key': $api_key
+        };
+
         var ajax = $.ajax({
                 type: "PUT",
                 url: "/products/" + product_id,
+                headers: headers,
                 contentType: "application/json",
                 data: JSON.stringify(data)
             })
@@ -141,9 +157,14 @@ $(function () {
 
         var product_id = $("#product_id").val();
 
+        var headers = {
+            'X-Api-Key': $api_key
+        };
+
         var ajax = $.ajax({
             type: "DELETE",
             url: "/products/" + product_id,
+            headers: headers,
             contentType: "application/json",
             data: '',
         })

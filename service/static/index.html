@@ -6,15 +6,30 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" href="static/css/blue_bootstrap.min.css">
+    <link rel="stylesheet" href="static/css/messagebox.css" />
     <script type="text/javascript" src = "static/js/jquery-3.1.1.min.js"></script>
     <script type="text/javascript" src="static/js/rest_api.js"></script>
+    <script type="text/javascript" src="static/js/messagebox.js"></script>
   </head>
   <body>
     <div class="container">
         <div class="page-header">
-            <h1>Product REST API Service</h1>
+            <div class="row">
+                <div class="col-md-10">
+                    <h1 class="text-primary">Product REST API Service</h1>
+                </div>
+                <div class="col-md-10" id="form_auth">
+                    <div class="col-sm-6">
+                        <input type="text" class="form-control" id="product_api" placeholder="Enter API KEY">
+                    </div>
+                    <div class="col-sm-4">
+                        <button type="submit" class="btn btn-warning" id="auth-btn">Auth</button>
+                    </div>
+                </div>
+            </div>
         </div>
 
+        
         <!-- Flash Message -->
         <div class="table-responsive">
           <table class="table">

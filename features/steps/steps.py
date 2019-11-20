@@ -16,6 +16,8 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support.ui import Select
 from selenium.webdriver.support import expected_conditions
+from service.service import get_apikey_for_behave
+import sys
 
 WAIT_SECONDS = int(getenv('WAIT_SECONDS', '60'))
 
@@ -27,7 +29,7 @@ WAIT_SECONDS = int(getenv('WAIT_SECONDS', '60'))
 @given('the following products')
 def step_impl(context):
     """ Delete all Products and load new ones """
-    headers = {'Content-Type': 'application/json'}
+    headers = {'X-Api-Key': context.API_KEY, 'Content-Type': 'application/json'}
     context.resp = requests.delete(context.base_url + '/products/reset')
     expect(context.resp.status_code).to_equal(204)
     create_url = context.base_url + '/products'
@@ -67,7 +69,6 @@ def step_impl(context, element_name, text_string):
 def step_impl(context, button):
     button_id = button.lower() + '-btn'
     context.driver.find_element_by_id(button_id).click()
-
 
 @when(u'I change "{element_name}" to "{text_string}"')
 def step_impl(context, element_name, text_string):
@@ -160,6 +161,8 @@ def step_impl(context, element_name):
 
 @when('I paste the "{element_name}" field')
 def step_impl(context, element_name):
+    if element_name.lower() == 'api':
+        context.clipboard = context.API_KEY
     element_id = 'product_' + element_name.lower()
     element = WebDriverWait(context.driver, WAIT_SECONDS).until(
         expected_conditions.presence_of_element_located((By.ID, element_id))

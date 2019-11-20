@@ -4,6 +4,8 @@ Environment for Behave Testing
 import os
 from behave import *
 from selenium import webdriver
+from service.service import get_apikey_for_behave
+from service import app
 
 WAIT_SECONDS = 120
 BASE_URL = os.getenv('BASE_URL', 'http://localhost:5000')
@@ -19,4 +21,5 @@ def before_all(context):
     # -- SET LOG LEVEL: behave --logging-level=ERROR ...
     # on behave command-line or in "behave.ini"
     context.config.setup_logging()
+    context.API_KEY = get_apikey_for_behave()
 

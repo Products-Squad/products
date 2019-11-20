@@ -145,8 +145,11 @@ def request_validation_error(error):
 ######################################################################
 def generate_apikey():
     """ Helper function for generating API keys """
-    return uuid.uuid4().hex
+    #return uuid.uuid4().hex
+    return '3932bbc036ea440d8dc15d2ae5e6d075'
 
+def get_apikey_for_behave():
+    return app.config['API_KEY']
 
 ######################################################################
 # Authorization Decorator
