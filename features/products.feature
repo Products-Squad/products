@@ -17,8 +17,6 @@ Feature: The product service back-end
 
     Scenario: Create a Product
         When I visit the "Home Page"
-        When I paste the "API" field
-        And I press the "Auth" button
         And I set the "Name" to "Shampos"
         And I set the "Stock" to "48"
         And I set the "Price" to "12.34"
@@ -79,8 +77,6 @@ Feature: The product service back-end
 
     Scenario: Update a Product
         When I visit the "Home Page"
-        When I paste the "API" field
-        And I press the "Auth" button
         And I set the "Name" to "King series Watches"
         And I press the "Search" button
         Then I should see "King series Watches" in the "Name" field
@@ -100,8 +96,6 @@ Feature: The product service back-end
 
     Scenario: Delete a Product
         When I visit the "Home Page"
-        When I paste the "API" field
-        And I press the "Auth" button
         And I set the "Name" to "King series Watches"
         And I press the "Search" button
         When I copy the "Id" field

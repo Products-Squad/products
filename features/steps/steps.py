@@ -161,8 +161,6 @@ def step_impl(context, element_name):
 
 @when('I paste the "{element_name}" field')
 def step_impl(context, element_name):
-    if element_name.lower() == 'api':
-        context.clipboard = context.API_KEY
     element_id = 'product_' + element_name.lower()
     element = WebDriverWait(context.driver, WAIT_SECONDS).until(
         expected_conditions.presence_of_element_located((By.ID, element_id))
