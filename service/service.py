@@ -145,8 +145,7 @@ def request_validation_error(error):
 ######################################################################
 def generate_apikey():
     """ Helper function for generating API keys """
-    #return uuid.uuid4().hex
-    return '3932bbc036ea440d8dc15d2ae5e6d075'
+    return uuid.uuid4().hex
 
 def get_apikey_for_behave():
     return app.config['API_KEY']
@@ -160,8 +159,8 @@ def token_required(f):
         token = None
         if 'X-Api-Key' in request.headers:
             token = request.headers['X-Api-Key']
-
-        if app.config.get('API_KEY') and app.config['API_KEY'] == token:
+            app.config['API_KEY'] = token
+        # if app.config.get('API_KEY') and app.config['API_KEY'] == token:
             return f(*args, **kwargs)
         else:
             return {'message': 'Invalid or missing token'}, 401

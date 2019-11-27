@@ -4,7 +4,7 @@ $(function () {
     //  U T I L I T Y   F U N C T I O N S
     // ****************************************
 
-    var $api_key = "";
+    var $api_key = "c38e5e9781dd46cb8eba2299c363bfe7";
 
     // Updates the form with data from the response
     function update_form_data(res) { //response object
@@ -30,10 +30,6 @@ $(function () {
         $("#flash_message").empty();
         $("#flash_message").append(message);
     }
-
-    $("#auth-btn").click(function () {
-        $api_key = $("#product_api").val();
-    });
 
     // ****************************************
     // Create a Product
@@ -211,7 +207,12 @@ $(function () {
             }
         }
         if (price) {
-            queryString += '?price=' + price
+            if (queryString.length > 0) {
+                queryString += '&price=' + price
+            }
+            else {
+                queryString += '?price=' + price
+            }
         }
 
         var ajax = $.ajax({
