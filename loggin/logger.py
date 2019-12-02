@@ -132,7 +132,7 @@ def initialize_logging(log_level=logging.INFO):
     for log_handler in handler_list:
         app.logger.removeHandler(log_handler)
     dir_name, file_name = os.path.split(os.path.abspath(__file__))
-    log_dir_name = os.path.join(Path(dir_name).parent,"data/log/")
+    log_dir_name = os.path.join(str(Path(dir_name).parent),"data/log/")
     if os.path.exists(log_dir_name) == False:
         os.mkdir(Path(log_dir_name).parent)
         os.mkdir(log_dir_name)
