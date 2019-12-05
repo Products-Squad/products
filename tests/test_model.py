@@ -45,7 +45,7 @@ class TestProducts(unittest.TestCase):
 
     @classmethod
     def tearDownClass(cls):
-        pass
+        db.session.remove()
 
     def setUp(self):
         Product.init_db(app)
@@ -53,7 +53,7 @@ class TestProducts(unittest.TestCase):
         db.create_all()  # make our sqlalchemy tables
 
     def tearDown(self):
-        db.session.remove()
+        #db.session.remove()
         db.drop_all()
 
     ##### Create a product #####
