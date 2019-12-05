@@ -71,6 +71,7 @@ class TestProductServer(unittest.TestCase):
     def tearDown(self):
         db.session.remove()
         db.drop_all()
+        db.get_engine(app).dispose()
 
     def _create_products(self, count):
         """ Factory method to create products in bulk """

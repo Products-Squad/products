@@ -42,10 +42,12 @@ class TestProducts(unittest.TestCase):
         getcontext().prec = 2
         # Set up the test database
         app.config['SQLALCHEMY_DATABASE_URI'] = DATABASE_URI
+        app.config["SQLALCHEMY_POOL_RECYCLE"] = 30
 
     @classmethod
     def tearDownClass(cls):
-        db.session.remove()
+        #db.session.remove()
+        pass
 
     def setUp(self):
         Product.init_db(app)
@@ -53,8 +55,9 @@ class TestProducts(unittest.TestCase):
         db.create_all()  # make our sqlalchemy tables
 
     def tearDown(self):
-        #db.session.remove()
+        db.session.remove()
         db.drop_all()
+        db.get_engine(app).dispose()
 
     ##### Create a product #####
     def test_create_a_product(self):
