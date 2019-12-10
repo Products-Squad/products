@@ -224,28 +224,25 @@ $(function () {
 
         ajax.done(function(res){
             //alert(res.toSource())
-            $("#search_results").empty();
-            $("#search_results").append('<table class="table-striped" cellpadding="10">');
+            $("#res_data").empty();
             var header = '<tr>'
-            header += '<th style="width:10%">ID</th>'
-            header += '<th style="width:40%">Name</th>'
-            header += '<th style="width:40%">Category</th>'
-            header += '<th style="width:40%">Price</th>'
-            header += '<th style="width:40%">Stock</th>'
-            header += '<th style="width:40%">Description</th>'
-            $("#search_results").append(header);
+            header += '<th class="col-md-1">ID</th>'
+            header += '<th class="col-md-3">Name</th>'
+            header += '<th class="col-md-3">Category</th>'
+            header += '<th class="col-md-2">Price</th>'
+            header += '<th class="col-md-2">Stock</th>'
+            header += '<th class="col-md-4">Description</th></tr>'
+            $("#res_data").append(header);
             var firstProduct = "";
             for(var i = 0; i < res.length; i++) {
                 var product = res[i];
-                var row = "<tr><td>"+product.id+"</td><td>"+product.name+"</td><td>"+product.category+"</td><td>"+
-                product.price+"</td><td>"+product.stock+"</td><td>"+product.description+"</td></tr>";
-                $("#search_results").append(row);
+                var row = '<tr><td class="col-md-1">'+product.id+'</td><td class="col-md-3">'+product.name+'</td><td class="col-md-3">'+product.category+'</td><td class="col-md-2">'+
+                product.price+'</td><td class="col-md-2">'+product.stock+'</td><td class="col-md-4">'+product.description+"</td></tr>";
+                $("#res_data").append(row);
                 if (i == 0) {
                     firstProduct = product;
                 }
             }
-
-            $("#search_results").append('</table>');
 
             // copy the first result to the form
             if (firstProduct != "") {
