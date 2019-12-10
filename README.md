@@ -67,8 +67,8 @@ vagrant halt
 
 ### Service on Cloud
 
-http://nyu-product-service-f19-dev.mybluemix.net/
+http://nyu-product-service-f19-prod.mybluemix.net/
 
 ### API Swagger Docs
 
-http://nyu-product-service-f19.mybluemix.net/apidocs
+http://nyu-product-service-f19-prod.mybluemix.net/apidocs
