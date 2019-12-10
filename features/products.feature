@@ -65,6 +65,8 @@ Feature: The product service back-end
         When I visit the "Home Page"
         And I set the "Name" to "King series Watches"
         And I press the "Search" button
+        Then I should see "King series Watches" in the "Name" field
+        And I should see "Accessories" in the "Category" field
         When I copy the "Id" field
         And I press the "Clear" button
         When I paste the "Id" field
@@ -98,6 +100,8 @@ Feature: The product service back-end
         When I visit the "Home Page"
         And I set the "Name" to "King series Watches"
         And I press the "Search" button
+        Then I should see "King series Watches" in the "Name" field
+        And I should see "Accessories" in the "Category" field
         When I copy the "Id" field
         And I press the "Clear" button
         When I paste the "Id" field
@@ -106,12 +110,15 @@ Feature: The product service back-end
         When I press the "Clear" button
         When I paste the "Id" field
         And I press the "Search" button
+        Then I should see "Wagyu Tenderloin Steak" in the "Name" field
         Then I should not see "King series Watches" in the results
 
     Scenario: Buy a Product
         When I visit the "Home Page"
         And I set the "Name" to "Wagyu Tenderloin Steak"
         And I press the "Search" button
+        Then I should see "Wagyu Tenderloin Steak" in the "Name" field
+        And I should see "Food" in the "Category" field
         When I copy the "Id" field
         And I press the "Clear" button
         When I paste the "Id" field
