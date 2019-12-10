@@ -30,16 +30,20 @@ cd products
 vagrant up
 vagrant ssh
 cd /vagrant
-FLASK_APP=service:app flask run -h 0.0.0.0
+honcho start
 ```
 The service is running on http://localhost:5000.
 
 ### Testing
 
-Run the tests with the following command, and code coverage report will be shown.
+Run TDD tests with the following command, and code coverage report will be shown.
 ```
 nosetests
 coverage report -m
+```
+Run BDD tests with the following command.
+```
+behave
 ```
 
 ### Shutdown
@@ -51,3 +55,8 @@ exit
 vagrant halt
 ```
 
+### Service on Cloud 
+http://nyu-product-service-f19.mybluemix.net/
+
+### API Swagger Docs
+http://nyu-product-service-f19.mybluemix.net/apidocs
