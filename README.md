@@ -17,7 +17,6 @@ The following APIs are provided in the service.
 - Query a product by an attribute:
   - category: [GET] `/products?category=<category>`;
   - name: [GET] `/products?name=<name>`;
-  - price range with 1, 2, or 3: [GET] `/products?price=<price>`;
 - Buy a product: [PUT] `/products/<id>/buy`;
 
 ### Prerequisite Installation
@@ -67,8 +66,8 @@ vagrant halt
 
 ### Service on Cloud
 
-http://nyu-product-service-f19-prod.mybluemix.net/
+http://nyu-product-service-f19.mybluemix.net/
 
 ### API Swagger Docs
 
-http://nyu-product-service-f19-prod.mybluemix.net/apidocs
+http://nyu-product-service-f19.mybluemix.net/apidocs
